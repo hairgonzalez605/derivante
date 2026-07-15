@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gráficas — Derivante</title>
+<meta name="description" content="Explora funciones y sus derivadas sobre un plano cartesiano interactivo: zoom, desplazamiento y múltiples funciones a la vez.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23090909'/%3E%3Ctext x='16' y='22' font-family='Georgia,serif' font-size='16' font-style='italic' fill='white' text-anchor='middle'%3Ed/dx%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..500,0..1,0&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="tailwind-config.js"></script>
+<link rel="stylesheet" href="styles.css">
+<style>
+  #plot-canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+  #plot-canvas:active { cursor: grabbing; }
+  #hover-readout { pointer-events: none; }
+  .color-swatch { -webkit-appearance: none; appearance: none; width: 28px; height: 28px; border-radius: 999px; border: 2px solid var(--c-outline-strong); background: none; padding: 0; cursor: pointer; }
+  .color-swatch::-webkit-color-swatch-wrapper { padding: 0; }
+  .color-swatch::-webkit-color-swatch { border-radius: 999px; border: none; }
+  .fn-row.hidden-fn { opacity: 0.45; }
+</style>
+</head>
+<body class="bg-background text-on-surface font-sans antialiased">
+<a href="#plot-section" class="skip-link font-body-md">Saltar al contenido principal</a>
+
+<!-- ============ HEADER ============ -->
+<header class="sticky top-0 z-40 border-b border-outline bg-background/85 backdrop-blur-md">
+  <div class="max-w-container-max mx-auto flex items-center justify-between px-lg py-sm md:py-md">
+    <a href="Calculadora de derivadas.html#top" class="flex items-center gap-sm shrink-0">
+      <span class="flex h-9 w-9 items-center justify-center rounded-md bg-surface-1 border border-outline font-mono text-sm italic text-on-surface">d/dx</span>
+      <span class="font-sans text-headline-md font-semibold tracking-tight">Derivante</span>
+    </a>
+
+    <nav class="hidden md:flex items-center gap-xl" aria-label="Principal">
+      <a class="pb-1 font-body-md text-on-surface-variant hover:text-on-surface transition-colors" href="Calculadora de derivadas.html#funcion">Calculadora</a>
+      <a class="relative pb-1 font-body-md text-on-surface font-medium border-b-2 border-primary" href="Graficas.html">Gráficas</a>
+      <a class="pb-1 font-body-md text-on-surface-variant hover:text-on-surface transition-colors" href="Calculadora de derivadas.html#como-funciona">Cómo funciona</a>
+    </nav>
+
+    <div class="flex items-center gap-xs">
+      <button id="header-history-btn" class="hidden sm:inline-flex btn-ghost h-9 w-9 items-center justify-center rounded-full" title="Historial de cálculos" aria-label="Historial de cálculos">
+        <span class="material-symbols-outlined text-[20px]">history</span>
+      </button>
+      <button id="header-settings-btn" class="hidden sm:inline-flex btn-ghost h-9 w-9 items-center justify-center rounded-full" title="Ajustes" aria-label="Ajustes">
+        <span class="material-symbols-outlined text-[20px]">tune</span>
+      </button>
+      <a href="#" class="hidden sm:inline-flex btn-ghost h-9 items-center gap-1 rounded-full px-3 font-body-md" title="Ver en GitHub">
+        <span class="material-symbols-outlined text-[18px]">code</span>
+        <span class="font-body-md">GitHub</span>
+      </a>
+      <button id="menu-toggle" class="md:hidden btn-ghost h-9 w-9 inline-flex items-center justify-center rounded-full" aria-expanded="false" aria-controls="mobile-nav" aria-label="Abrir menú">
+        <span class="material-symbols-outlined text-[22px]" id="menu-icon">menu</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="mobile-nav" class="md:hidden grid border-t border-outline">
+    <div>
+      <nav class="flex flex-col px-lg py-md gap-md" aria-label="Principal (móvil)">
+        <a class="font-body-lg text-on-surface-variant" href="Calculadora de derivadas.html#funcion">Calculadora</a>
+        <a class="font-body-lg font-medium" href="Graficas.html">Gráficas</a>
+        <a class="font-body-lg text-on-surface-variant" href="Calculadora de derivadas.html#como-funciona">Cómo funciona</a>
+        <div class="flex items-center gap-md pt-sm border-t border-outline">
+          <button id="header-history-btn-mobile" class="btn-ghost h-9 w-9 inline-flex items-center justify-center rounded-full" aria-label="Historial"><span class="material-symbols-outlined text-[20px]">history</span></button>
+          <button id="header-settings-btn-mobile" class="btn-ghost h-9 w-9 inline-flex items-center justify-center rounded-full" aria-label="Ajustes"><span class="material-symbols-outlined text-[20px]">tune</span></button>
+        </div>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="max-w-container-max mx-auto px-lg lg:px-xl py-xl space-y-xl">
+
+    <div class="space-y-sm reveal">
+      <h1 class="font-sans text-headline-lg-mobile md:text-headline-lg">Gráficas</h1>
+      <p class="font-body-lg text-on-surface-variant max-w-2xl">Explora una función y su derivada sobre el plano cartesiano: acércate, desplázate y agrega tantas funciones como quieras.</p>
+    </div>
+
+    <div id="no-calc-banner" class="hidden items-start gap-sm border border-outline-strong bg-surface-1 rounded-xl p-md reveal">
+      <span class="material-symbols-outlined text-[20px] text-on-surface shrink-0">info</span>
+      <div class="min-w-0">
+        <div class="font-body-md text-on-surface font-medium">Aún no calculaste nada en esta sesión</div>
+        <div class="font-body-md text-on-surface-variant">Mostrando un ejemplo. <a class="underline hover:text-on-surface" href="Calculadora de derivadas.html#funcion">Ve a la calculadora</a> para graficar tu propia función — al volver aquí, se cargará automáticamente.</div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-xl">
+      <!-- Function manager -->
+      <div class="lg:col-span-4 space-y-md">
+        <section class="card reveal p-lg space-y-md">
+          <h2 class="font-sans text-headline-md">Funciones</h2>
+          <div class="expr-shell flex items-center gap-sm p-sm pl-md">
+            <span class="material-symbols-outlined text-outline-strong text-[20px] shrink-0" aria-hidden="true">functions</span>
+            <input id="new-function-input" type="text" inputmode="text" autocomplete="off" spellcheck="false"
+              class="flex-1 min-w-0 bg-transparent border-0 focus:ring-0 focus:outline-none font-mono text-mono-math text-on-surface placeholder:text-on-surface-variant/70 py-2"
+              placeholder="Agregar función, ej. cos(x)"
+              aria-label="Agregar nueva función">
+            <button id="add-function-btn" type="button" class="btn-ghost h-9 w-9 shrink-0 inline-flex items-center justify-center rounded-full" title="Agregar función" aria-label="Agregar función">
+              <span class="material-symbols-outlined text-[20px]">add_circle</span>
+            </button>
+          </div>
+          <p id="add-function-error" class="hidden font-label-md text-on-surface-variant"></p>
+          <div id="function-list" class="space-y-sm"></div>
+        </section>
+
+        <section class="card reveal p-lg space-y-md">
+          <h2 class="font-sans text-headline-md">Herramientas de análisis</h2>
+          <label class="flex items-center justify-between gap-md">
+            <span class="font-label-md text-on-surface-variant uppercase tracking-widest shrink-0">Función activa</span>
+            <select id="active-fn-select" class="key rounded-md h-9 px-sm font-mono text-body-md bg-surface-low min-w-0 flex-1"></select>
+          </label>
+
+          <div class="grid grid-cols-2 gap-sm">
+            <button type="button" class="tool-toggle-btn key rounded-md py-2 font-label-md" data-tool="tangent">Tangente</button>
+            <button type="button" class="tool-toggle-btn key rounded-md py-2 font-label-md" data-tool="area">Área / Integral</button>
+            <button type="button" class="tool-toggle-btn key rounded-md py-2 font-label-md" data-tool="extrema">Máx/mín y críticos</button>
+            <button type="button" class="tool-toggle-btn key rounded-md py-2 font-label-md" data-tool="intersections">Intersecciones</button>
+            <button type="button" class="tool-toggle-btn key rounded-md py-2 font-label-md" data-tool="limit">Límite</button>
+            <button type="button" class="tool-toggle-btn key rounded-md py-2 font-label-md" data-tool="asymptotes">Asíntotas</button>
+          </div>
+
+          <div id="tool-panels">
+            <div id="panel-tangent" class="tool-panel hidden space-y-sm pt-sm border-t border-outline">
+              <p class="font-body-md text-on-surface-variant">Haz clic sobre la curva de la función activa, o escribe un valor de x.</p>
+              <div class="flex items-center gap-sm flex-wrap">
+                <span class="font-label-md text-on-surface-variant">x =</span>
+                <input type="number" id="tangent-x-input" step="0.5" class="key rounded-md h-9 px-sm w-24 font-mono bg-surface-low">
+                <button type="button" id="tangent-replay-btn" class="btn-ghost h-8 px-2 rounded font-label-md">Reproducir animación</button>
+              </div>
+              <div id="tangent-result" class="font-body-md text-on-surface-variant overflow-x-auto"></div>
+            </div>
+
+            <div id="panel-area" class="tool-panel hidden space-y-sm pt-sm border-t border-outline">
+              <div class="flex items-center gap-sm flex-wrap">
+                <span class="font-label-md text-on-surface-variant">a =</span>
+                <input type="number" id="area-a-input" step="0.5" value="-2" class="key rounded-md h-9 px-sm w-20 font-mono bg-surface-low">
+                <span class="font-label-md text-on-surface-variant">b =</span>
+                <input type="number" id="area-b-input" step="0.5" value="2" class="key rounded-md h-9 px-sm w-20 font-mono bg-surface-low">
+                <button type="button" id="area-replay-btn" class="btn-ghost h-8 px-2 rounded font-label-md">Reproducir animación</button>
+              </div>
+              <div id="area-result" class="font-body-md text-on-surface-variant space-y-1 overflow-x-auto"></div>
+            </div>
+
+            <div id="panel-extrema" class="tool-panel hidden space-y-sm pt-sm border-t border-outline">
+              <div id="extrema-result" class="font-body-md text-on-surface-variant space-y-1"></div>
+            </div>
+
+            <div id="panel-intersections" class="tool-panel hidden space-y-sm pt-sm border-t border-outline">
+              <div id="intersections-result" class="font-body-md text-on-surface-variant space-y-1"></div>
+            </div>
+
+            <div id="panel-limit" class="tool-panel hidden space-y-sm pt-sm border-t border-outline">
+              <div class="flex items-center gap-sm flex-wrap">
+                <span class="font-label-md text-on-surface-variant">x →</span>
+                <input type="text" id="limit-x-input" value="0" placeholder="0, inf, -inf" class="key rounded-md h-9 px-sm w-28 font-mono bg-surface-low">
+                <button type="button" id="limit-eval-btn" class="btn btn-secondary rounded-md px-md py-2 font-label-md font-bold">Evaluar</button>
+                <button type="button" id="limit-replay-btn" class="btn-ghost h-8 px-2 rounded font-label-md">Reproducir animación</button>
+              </div>
+              <div id="limit-result" class="font-body-md text-on-surface-variant overflow-x-auto"></div>
+            </div>
+
+            <div id="panel-asymptotes" class="tool-panel hidden space-y-sm pt-sm border-t border-outline">
+              <div id="asymptotes-result" class="font-body-md text-on-surface-variant space-y-1"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Plot -->
+      <div class="lg:col-span-8">
+        <section id="plot-section" class="card reveal p-lg space-y-md scroll-mt-24">
+          <div class="flex flex-wrap items-center justify-between gap-sm">
+            <h2 class="font-sans text-headline-md">Plano cartesiano</h2>
+            <div class="flex flex-wrap gap-xs">
+              <button id="toggle-grid-btn" type="button" class="key px-sm py-1 rounded font-label-md" title="Mostrar/ocultar cuadrícula">Cuadrícula</button>
+              <button id="toggle-axes-btn" type="button" class="key px-sm py-1 rounded font-label-md" title="Mostrar/ocultar ejes">Ejes</button>
+              <button id="plot-zoom-in" type="button" class="key px-sm py-1 rounded font-label-md">Acercar</button>
+              <button id="plot-zoom-out" type="button" class="key px-sm py-1 rounded font-label-md">Alejar</button>
+              <button id="plot-fit-btn" type="button" class="key px-sm py-1 rounded font-label-md">Ajustar vista</button>
+              <button id="plot-reset-btn" type="button" class="key px-sm py-1 rounded font-label-md">Restablecer</button>
+              <button id="plot-capture-btn" type="button" class="key h-8 w-8 rounded inline-flex items-center justify-center" title="Capturar imagen" aria-label="Capturar imagen"><span class="material-symbols-outlined text-[18px]">photo_camera</span></button>
+              <button id="plot-theme-btn" type="button" class="key h-8 w-8 rounded inline-flex items-center justify-center" title="Cambiar tema" aria-label="Cambiar entre modo claro y oscuro"><span class="material-symbols-outlined text-[18px]">contrast</span></button>
+            </div>
+          </div>
+          <div class="relative h-[420px] sm:h-[560px] border border-outline rounded-xl bg-surface overflow-hidden">
+            <canvas id="plot-canvas"></canvas>
+            <div id="hover-readout" class="hidden absolute top-sm left-sm bg-surface-high/90 backdrop-blur border border-outline rounded-lg px-sm py-xs font-mono text-body-md text-on-surface"></div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="border-t border-outline">
+  <div class="max-w-container-max mx-auto px-lg py-xl flex flex-col md:flex-row justify-between items-center gap-md">
+    <div class="flex flex-col items-center md:items-start gap-xs">
+      <span class="font-sans text-body-lg font-semibold">Derivante</span>
+      <span class="font-label-md text-on-surface-variant opacity-70">© 2026 Derivante · Calculadora de derivadas simbólica</span>
+    </div>
+    <nav class="flex items-center gap-xl" aria-label="Enlaces del pie de página">
+      <a class="font-label-md text-on-surface-variant hover:text-on-surface transition-colors" href="#">GitHub</a>
+      <a class="font-label-md text-on-surface-variant hover:text-on-surface transition-colors" href="#">Documentación</a>
+      <a class="font-label-md text-on-surface-variant hover:text-on-surface transition-colors" href="#">Privacidad</a>
+    </nav>
+  </div>
+</footer>
+
+<!-- ============ REFERENCE MODAL (settings only, on this page) ============ -->
+<div id="modal-overlay" class="modal-overlay hidden fixed inset-0 z-[100] items-center justify-center p-md">
+  <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" data-modal-backdrop></div>
+  <div id="modal-panel" class="relative z-10 w-full max-w-2xl max-h-[85vh] card flex flex-col overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="flex items-center justify-between gap-md p-lg border-b border-outline shrink-0">
+      <h2 id="modal-title" class="font-sans text-headline-md">Ajustes</h2>
+      <button type="button" id="modal-close" class="btn-ghost h-9 w-9 shrink-0 rounded-full inline-flex items-center justify-center" aria-label="Cerrar">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div id="modal-body" class="p-lg space-y-lg overflow-y-auto"></div>
+  </div>
+</div>
+
+<script src="engine.js"></script>
+<script src="settings.js"></script>
+<script>
+(() => {
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---------- Mobile nav ----------
+  const menuToggle = document.getElementById('menu-toggle');
+  const mobileNav = document.getElementById('mobile-nav');
+  const menuIcon = document.getElementById('menu-icon');
+  menuToggle.addEventListener('click', () => {
+    const isOpen = mobileNav.classList.toggle('open');
+    menuToggle.setAttribute('aria-expanded', String(isOpen));
+    menuIcon.textContent = isOpen ? 'close' : 'menu';
+  });
+  mobileNav.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+    mobileNav.classList.remove('open');
+    menuToggle.setAttribute('aria-expanded', 'false');
+    menuIcon.textContent = 'menu';
+  }));
+  document.getElementById('header-history-btn').addEventListener('click', () => {
+    window.location.href = 'Calculadora de derivadas.html#historial';
+  });
+  document.getElementById('header-history-btn-mobile').addEventListener('click', () => {
+    window.location.href = 'Calculadora de derivadas.html#historial';
+  });
+
+  // ---------- Settings (shared logic from settings.js; this page owns the modal shell) ----------
+  const modalOverlay = document.getElementById('modal-overlay');
+  const modalBody = document.getElementById('modal-body');
+  let lastFocusedBeforeModal = null;
+  function openSettingsModal() {
+    lastFocusedBeforeModal = document.activeElement;
+    modalBody.innerHTML = buildSettingsHTML();
+    renderMath(modalBody);
+    wireSettingsControls(modalBody, () => { drawPlot(); });
+    modalOverlay.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    document.getElementById('modal-close').focus();
+  }
+  function closeModal() {
+    modalOverlay.classList.remove('show');
+    document.body.style.overflow = '';
+    if (lastFocusedBeforeModal) lastFocusedBeforeModal.focus();
+  }
+  document.getElementById('header-settings-btn').addEventListener('click', openSettingsModal);
+  document.getElementById('header-settings-btn-mobile').addEventListener('click', openSettingsModal);
+  document.getElementById('modal-close').addEventListener('click', closeModal);
+  document.querySelector('[data-modal-backdrop]').addEventListener('click', closeModal);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && modalOverlay.classList.contains('show')) closeModal(); });
+
+  applySettings();
+  if (window.matchMedia) {
+    window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => { if (settings.theme === 'system') applySettings(); });
+  }
+
+  // ---------- Reveal on scroll ----------
+  const revealEls = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window && !reduceMotion) {
+    document.body.classList.add('js-reveal-ready');
+    let n = 0;
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const delay = Math.min(n, 8) * 50; n++;
+          setTimeout(() => entry.target.classList.add('is-visible'), delay);
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    revealEls.forEach(el => io.observe(el));
+  }
+
+  // ======================================================================
+  // Function manager
+  // ======================================================================
+  // Medium lightness/saturation so every default reads clearly on both a near-black and a near-white background.
+  const PALETTE = ['#4f8fe0', '#e0703f', '#3f9e6d', '#c14f8a', '#8a6cf0', '#d1a53d', '#4fb8c4', '#e0567a'];
+  let paletteIndex = 0;
+  function nextColor() { return PALETTE[(paletteIndex++) % PALETTE.length]; }
+
+  let functions = []; // { id, raw, node, latex, color, visible, width, style, isDerivative }
+  let fnIdCounter = 0;
+
+  function addFunctionEntry({ raw, color, isDerivative = false, width = 2, lineStyle = 'solid' }) {
+    const node = parse(insertImplicitMultiplication(tokenize(raw))).node;
+    const entry = {
+      id: 'f' + (fnIdCounter++),
+      raw, node,
+      latex: toLatex(node),
+      fn: compileFn(node, 'x'),
+      color: color || nextColor(),
+      visible: true,
+      width,
+      lineStyle,
+      isDerivative,
+    };
+    functions.push(entry);
+    return entry;
+  }
+
+  function renderFunctionList() {
+    const list = document.getElementById('function-list');
+    if (!functions.length) {
+      list.innerHTML = '<p class="font-body-md text-on-surface-variant">Todavía no hay funciones. Agrega una arriba.</p>';
+      return;
+    }
+    list.innerHTML = functions.map(f => `
+      <div class="fn-row p-md rounded-lg bg-surface-low border border-outline space-y-2 ${f.visible ? '' : 'hidden-fn'}" data-id="${f.id}">
+        <div class="flex items-center gap-sm">
+          <input type="color" class="color-swatch fn-color" value="${f.color}" aria-label="Color de la función" style="border-color:${f.color}">
+          <div class="min-w-0 flex-1 overflow-x-auto">$${f.latex}$</div>
+          <button type="button" class="fn-visible btn-ghost h-8 w-8 inline-flex items-center justify-center rounded-full" aria-label="${f.visible ? 'Ocultar' : 'Mostrar'}">
+            <span class="material-symbols-outlined text-[18px]">${f.visible ? 'visibility' : 'visibility_off'}</span>
+          </button>
+          <button type="button" class="fn-delete btn-ghost h-8 w-8 inline-flex items-center justify-center rounded-full" aria-label="Eliminar">
+            <span class="material-symbols-outlined text-[18px]">delete</span>
+          </button>
+        </div>
+        <div class="flex items-center gap-md">
+          <label class="flex items-center gap-xs font-label-md text-on-surface-variant">Grosor
+            <select class="fn-width key rounded-md h-8 px-xs ml-1 font-label-md bg-surface-high">
+              <option value="1" ${f.width === 1 ? 'selected' : ''}>1</option>
+              <option value="2" ${f.width === 2 ? 'selected' : ''}>2</option>
+              <option value="3" ${f.width === 3 ? 'selected' : ''}>3</option>
+              <option value="4" ${f.width === 4 ? 'selected' : ''}>4</option>
+            </select>
+          </label>
+          <label class="flex items-center gap-xs font-label-md text-on-surface-variant">Estilo
+            <select class="fn-style key rounded-md h-8 px-xs ml-1 font-label-md bg-surface-high">
+              <option value="solid" ${f.lineStyle === 'solid' ? 'selected' : ''}>Sólida</option>
+              <option value="dashed" ${f.lineStyle === 'dashed' ? 'selected' : ''}>Discontinua</option>
+              <option value="dotted" ${f.lineStyle === 'dotted' ? 'selected' : ''}>Punteada</option>
+            </select>
+          </label>
+        </div>
+      </div>`).join('');
+    renderMath(list);
+    wireFunctionRowEvents();
+  }
+
+  function wireFunctionRowEvents() {
+    document.querySelectorAll('.fn-row').forEach(row => {
+      const id = row.dataset.id;
+      const entry = functions.find(f => f.id === id);
+      if (!entry) return;
+      row.querySelector('.fn-color').addEventListener('input', (e) => { entry.color = e.target.value; drawPlot(); });
+      row.querySelector('.fn-visible').addEventListener('click', () => { entry.visible = !entry.visible; renderFunctionList(); drawPlot(); });
+      row.querySelector('.fn-delete').addEventListener('click', () => {
+        functions = functions.filter(f => f.id !== id);
+        renderFunctionList(); updateActiveFnSelect(); recomputeActiveTool(); drawPlot();
+      });
+      row.querySelector('.fn-width').addEventListener('change', (e) => { entry.width = parseInt(e.target.value, 10); drawPlot(); });
+      row.querySelector('.fn-style').addEventListener('change', (e) => { entry.lineStyle = e.target.value; drawPlot(); });
+    });
+  }
+
+  // ======================================================================
+  // Active function (target of the analysis tools)
+  // ======================================================================
+  let activeFnId = null;
+  function activeFn() { return functions.find(f => f.id === activeFnId) || functions[0] || null; }
+  function updateActiveFnSelect() {
+    const select = document.getElementById('active-fn-select');
+    if (!functions.length) { select.innerHTML = '<option>—</option>'; activeFnId = null; return; }
+    if (!functions.some(f => f.id === activeFnId)) activeFnId = functions[0].id;
+    select.innerHTML = functions.map(f => `<option value="${f.id}" ${f.id === activeFnId ? 'selected' : ''}>${f.raw || f.latex.replace(/\\|\{|\}/g, '')}</option>`).join('');
+  }
+  document.getElementById('active-fn-select').addEventListener('change', (e) => {
+    activeFnId = e.target.value;
+    recomputeActiveTool();
+  });
+
+  // ======================================================================
+  // Numeric analysis engine — every tool below is numeric/heuristic, not a
+  // full CAS. Results are labeled "aproximado" where that matters, and every
+  // search is bounded to the current view range so it stays fast and honest
+  // about what "global" means here (global within what's on screen).
+  // ======================================================================
+  function safeEval(fn, x) {
+    try { const y = fn(x); return Number.isFinite(y) ? y : null; } catch (_) { return null; }
+  }
+  function numericDerivative(fn, x, h = 1e-4) {
+    const y1 = safeEval(fn, x + h), y2 = safeEval(fn, x - h);
+    if (y1 === null || y2 === null) return null;
+    return (y1 - y2) / (2 * h);
+  }
+  function numericSecondDerivative(fn, x, h = 1e-3) {
+    const y1 = safeEval(fn, x + h), y0 = safeEval(fn, x), y2 = safeEval(fn, x - h);
+    if (y1 === null || y0 === null || y2 === null) return null;
+    return (y1 - 2 * y0 + y2) / (h * h);
+  }
+  function bisectRoot(g, lo, hi, iters = 50) {
+    let flo = g(lo), fhi = g(hi);
+    if (flo === null || fhi === null) return null;
+    if (Math.abs(flo) < 1e-12) return lo;
+    if (Math.abs(fhi) < 1e-12) return hi;
+    if (flo * fhi > 0) return null;
+    for (let i = 0; i < iters; i++) {
+      const mid = (lo + hi) / 2, fm = g(mid);
+      if (fm === null) return null;
+      if (Math.abs(fm) < 1e-10) return mid;
+      if ((flo < 0) === (fm < 0)) { lo = mid; flo = fm; } else { hi = mid; fhi = fm; }
+    }
+    return (lo + hi) / 2;
+  }
+  function findSignChanges(g, xMin, xMax, N = 1500) {
+    const roots = [];
+    const step = (xMax - xMin) / N;
+    let prevX = xMin, prevY = g(prevX);
+    for (let i = 1; i <= N; i++) {
+      const x = xMin + i * step;
+      const y = g(x);
+      if (prevY !== null && y !== null) {
+        if (Math.abs(prevY) < 1e-9) roots.push(prevX);
+        else if (prevY * y < 0) {
+          const r = bisectRoot(g, prevX, x);
+          if (r !== null) roots.push(r);
+        }
+      }
+      prevX = x; prevY = y;
+    }
+    return roots;
+  }
+  function findCriticalPoints(fn, xMin, xMax) {
+    const xs = findSignChanges(x => numericDerivative(fn, x), xMin, xMax);
+    return xs.map(x => ({ x, y: safeEval(fn, x) })).filter(p => p.y !== null);
+  }
+  function classifyCritical(fn, x) {
+    const d2 = numericSecondDerivative(fn, x);
+    if (d2 !== null && Math.abs(d2) > 1e-6) return d2 > 0 ? 'mínimo local' : 'máximo local';
+    const before = numericDerivative(fn, x - 0.01), after = numericDerivative(fn, x + 0.01);
+    if (before !== null && after !== null) {
+      if (before > 0 && after < 0) return 'máximo local';
+      if (before < 0 && after > 0) return 'mínimo local';
+    }
+    return 'punto de inflexión';
+  }
+  function findVerticalAsymptotes(fn, xMin, xMax, N = 1500) {
+    // Threshold is relative to the typical (median) magnitude actually seen in this range, not a
+    // fixed constant — a fixed huge threshold misses ordinary poles like 1/(x-2) at normal sampling
+    // density, and requiring a sign change misses even-order poles like 1/x^2. Instead: find runs of
+    // samples whose magnitude spikes well above the local norm, regardless of sign, and report the
+    // midpoint of each run.
+    const step = (xMax - xMin) / N;
+    const ys = [];
+    for (let i = 0; i <= N; i++) ys.push(safeEval(fn, xMin + i * step));
+    const finiteAbs = ys.filter(y => y !== null).map(Math.abs).sort((a, b) => a - b);
+    if (!finiteAbs.length) return [];
+    const median = finiteAbs[Math.floor(finiteAbs.length / 2)] || 1;
+    const threshold = Math.max(20, median * 12);
+    const found = [];
+    let runStart = null;
+    for (let i = 0; i <= N; i++) {
+      const isBig = ys[i] !== null && Math.abs(ys[i]) > threshold;
+      if (isBig && runStart === null) runStart = i;
+      if (!isBig && runStart !== null) { found.push(xMin + ((runStart + i - 1) / 2) * step); runStart = null; }
+    }
+    if (runStart !== null) found.push(xMin + ((runStart + N) / 2) * step);
+    const merged = [];
+    found.forEach(x => { if (!merged.length || Math.abs(x - merged[merged.length - 1]) > step * 5) merged.push(x); });
+    // Refine each estimate by bisecting 1/f(x) for a root, which pinpoints a simple pole far more
+    // precisely than the sampling grid alone; falls back to the coarse estimate if that fails
+    // (e.g. an even-order pole where 1/f doesn't change sign).
+    return merged.map(x => {
+      const g = t => { const y = safeEval(fn, t); return (y === null || y === 0) ? null : 1 / y; };
+      const r = bisectRoot(g, x - step * 3, x + step * 3);
+      return r !== null ? r : x;
+    });
+  }
+  function checkHorizontalAsymptote(fn) {
+    const far = 1e6, further = 1e7;
+    const result = {};
+    const yR1 = safeEval(fn, far), yR2 = safeEval(fn, further);
+    if (yR1 !== null && yR2 !== null && Math.abs(yR1 - yR2) < 1e-3) result.right = yR2;
+    const yL1 = safeEval(fn, -far), yL2 = safeEval(fn, -further);
+    if (yL1 !== null && yL2 !== null && Math.abs(yL1 - yL2) < 1e-3) result.left = yL2;
+    return result;
+  }
+  function checkObliqueAsymptote(fn, side) {
+    const X1 = side * 1e5, X2 = side * 1e6;
+    const y1 = safeEval(fn, X1), y2 = safeEval(fn, X2);
+    if (y1 === null || y2 === null) return null;
+    const m = (y2 - y1) / (X2 - X1);
+    if (!Number.isFinite(m) || Math.abs(m) < 1e-6) return null;
+    const b1 = y1 - m * X1, b2 = y2 - m * X2;
+    if (Math.abs(b1 - b2) > Math.abs(b2) * 0.02 + 0.5) return null;
+    return { m, b: b2 };
+  }
+  function simpsonIntegral(fn, a, b, n = 1000) {
+    if (a === b) return 0;
+    const sign = a < b ? 1 : -1;
+    if (a > b) [a, b] = [b, a];
+    if (n % 2 !== 0) n++;
+    const h = (b - a) / n;
+    let sum = (safeEval(fn, a) ?? 0) + (safeEval(fn, b) ?? 0);
+    for (let i = 1; i < n; i++) sum += (i % 2 === 0 ? 2 : 4) * (safeEval(fn, a + i * h) ?? 0);
+    return sign * sum * h / 3;
+  }
+
+  // ---------- Bounded symbolic indefinite integral (elementary patterns only) ----------
+  function tryIntegrateElementary(name, u) {
+    switch (name) {
+      case 'sin': return { type: 'neg', a: { type: 'func', name: 'cos', arg: u } };
+      case 'cos': return { type: 'func', name: 'sin', arg: u };
+      case 'exp': return { type: 'func', name: 'exp', arg: u };
+      case 'sinh': return { type: 'func', name: 'cosh', arg: u };
+      case 'cosh': return { type: 'func', name: 'sinh', arg: u };
+      default: return null;
+    }
+  }
+  function tryIntegrate(node, xVar) {
+    switch (node.type) {
+      case 'num': case 'const': return { type: 'mul', a: node, b: { type: 'var', name: xVar } };
+      case 'var':
+        if (node.name === xVar) return { type: 'div', a: { type: 'pow', a: node, b: { type: 'num', value: 2 } }, b: { type: 'num', value: 2 } };
+        return { type: 'mul', a: node, b: { type: 'var', name: xVar } };
+      case 'neg': { const i = tryIntegrate(node.a, xVar); return i ? { type: 'neg', a: i } : null; }
+      case 'add': { const ia = tryIntegrate(node.a, xVar), ib = tryIntegrate(node.b, xVar); return (ia && ib) ? { type: 'add', a: ia, b: ib } : null; }
+      case 'sub': { const ia = tryIntegrate(node.a, xVar), ib = tryIntegrate(node.b, xVar); return (ia && ib) ? { type: 'sub', a: ia, b: ib } : null; }
+      case 'mul': {
+        if (!containsVar(node.a, xVar)) { const ib = tryIntegrate(node.b, xVar); return ib ? { type: 'mul', a: node.a, b: ib } : null; }
+        if (!containsVar(node.b, xVar)) { const ia = tryIntegrate(node.a, xVar); return ia ? { type: 'mul', a: node.b, b: ia } : null; }
+        return null;
+      }
+      case 'div': {
+        if (!containsVar(node.b, xVar)) { const ia = tryIntegrate(node.a, xVar); return ia ? { type: 'div', a: ia, b: node.b } : null; }
+        if (node.a.type === 'num' && node.a.value === 1 && node.b.type === 'var' && node.b.name === xVar) {
+          return { type: 'func', name: 'ln', arg: { type: 'func', name: 'abs', arg: node.b } };
+        }
+        return null;
+      }
+      case 'pow': {
+        if (node.a.type === 'var' && node.a.name === xVar && !containsVar(node.b, xVar)) {
+          if (node.b.type === 'num' && node.b.value === -1) return { type: 'func', name: 'ln', arg: { type: 'func', name: 'abs', arg: node.a } };
+          const newExp = { type: 'add', a: node.b, b: { type: 'num', value: 1 } };
+          return { type: 'div', a: { type: 'pow', a: node.a, b: newExp }, b: newExp };
+        }
+        return null;
+      }
+      case 'func': {
+        const u = node.arg;
+        if (u.type === 'var' && u.name === xVar) return tryIntegrateElementary(node.name, u);
+        const dArg = diff(u, xVar, null);
+        if (containsVar(dArg, xVar)) return null; // only linear substitution is supported
+        const base = tryIntegrateElementary(node.name, u);
+        return base ? { type: 'div', a: base, b: dArg } : null;
+      }
+      default: return null;
+    }
+  }
+
+  document.getElementById('add-function-btn').addEventListener('click', handleAddFunction);
+  document.getElementById('new-function-input').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); handleAddFunction(); } });
+  function handleAddFunction() {
+    const input = document.getElementById('new-function-input');
+    const errEl = document.getElementById('add-function-error');
+    const raw = input.value.trim();
+    if (!raw) return;
+    try {
+      addFunctionEntry({ raw });
+      input.value = '';
+      errEl.classList.add('hidden');
+      renderFunctionList();
+      updateActiveFnSelect();
+      fitView();
+    } catch (err) {
+      errEl.textContent = err instanceof CalcError ? err.message : 'No se pudo interpretar esa función.';
+      errEl.classList.remove('hidden');
+    }
+  }
+
+  // ======================================================================
+  // Load from last calculation (sessionStorage) or seed a friendly default
+  // ======================================================================
+  function loadInitialFunctions() {
+    let entry = null;
+    try {
+      const list = JSON.parse(sessionStorage.getItem('derivante.history.v1') || '[]');
+      entry = list.find(e => !e.isImplicit && e.fnNode && e.derivativeNode) || null;
+    } catch (_) { entry = null; }
+
+    if (entry) {
+      const original = { id: 'f' + (fnIdCounter++), raw: entry.raw, node: entry.fnNode, latex: toLatex(entry.fnNode), fn: compileFn(entry.fnNode, entry.config.xVar || 'x'), color: nextColor(), visible: true, width: 2, lineStyle: 'solid', isDerivative: false };
+      const derivative = { id: 'f' + (fnIdCounter++), raw: null, node: entry.derivativeNode, latex: toLatex(entry.derivativeNode), fn: compileFn(entry.derivativeNode, entry.config.xVar || 'x'), color: nextColor(), visible: true, width: 2, lineStyle: 'solid', isDerivative: true };
+      functions.push(original, derivative);
+      document.getElementById('no-calc-banner').classList.add('hidden');
+    } else {
+      document.getElementById('no-calc-banner').classList.remove('hidden');
+      document.getElementById('no-calc-banner').classList.add('flex');
+      addFunctionEntry({ raw: 'x^2', color: nextColor() });
+    }
+    renderFunctionList();
+    updateActiveFnSelect();
+  }
+
+  // ======================================================================
+  // Plot (pan/zoom/grid/axes/hover/capture) — generic multi-function renderer
+  // ======================================================================
+  const view = { xMin: -10, xMax: 10, yMin: null, yMax: null };
+  let showGrid = settings.graphGridDefault;
+  let showAxes = settings.graphAxesDefault;
+
+  function cssVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+  function niceStepLocal(rough) {
+    const mag = Math.pow(10, Math.floor(Math.log10(Math.abs(rough) || 1)));
+    const norm = rough / mag;
+    const step = norm < 1.5 ? 1 : norm < 3 ? 2 : norm < 7 ? 5 : 10;
+    return step * mag;
+  }
+  function sampleAll(N) {
+    const step = (view.xMax - view.xMin) / N;
+    let yMin = Infinity, yMax = -Infinity;
+    const series = functions.filter(f => f.visible).map(f => {
+      const pts = [];
+      for (let i = 0; i <= N; i++) {
+        const x = view.xMin + i * step;
+        let y = NaN;
+        try { y = f.fn(x); } catch (_) {}
+        if (Number.isFinite(y)) { pts.push([x, y]); yMin = Math.min(yMin, y); yMax = Math.max(yMax, y); }
+        else pts.push([x, null]);
+      }
+      return { f, pts };
+    });
+    return { series, yMin, yMax };
+  }
+  function drawPlot() {
+    const canvas = document.getElementById('plot-canvas');
+    const wrap = canvas.parentElement;
+    const dpr = window.devicePixelRatio || 1;
+    const cw = wrap.clientWidth, ch = wrap.clientHeight;
+    canvas.width = cw * dpr; canvas.height = ch * dpr;
+    canvas.style.width = cw + 'px'; canvas.style.height = ch + 'px';
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, cw, ch);
+
+    const N = settings.graphQuality === 'baja' ? 150 : settings.graphQuality === 'media' ? 350 : 800;
+    const { series, yMin: sMin, yMax: sMax } = sampleAll(N);
+    let yMin = Number.isFinite(sMin) ? sMin : -5;
+    let yMax = Number.isFinite(sMax) ? sMax : 5;
+    if (yMin === yMax) { yMin -= 1; yMax += 1; }
+    const pad = (yMax - yMin) * 0.15;
+    yMin -= pad; yMax += pad;
+    view.yMin = yMin; view.yMax = yMax;
+
+    const toPx = x => (x - view.xMin) / (view.xMax - view.xMin) * cw;
+    const toPy = y => ch - (y - yMin) / (yMax - yMin) * ch;
+
+    const gridLine = cssVar('--c-grid-line') || 'rgba(255,255,255,0.06)';
+    const axisColor = cssVar('--c-on-surface-variant') || 'rgba(229,226,225,0.35)';
+    const tickColor = cssVar('--c-on-surface-variant') || 'rgba(168,172,174,0.85)';
+
+    const xTickStep = niceStepLocal((view.xMax - view.xMin) / 10);
+    const yTickStep = niceStepLocal((yMax - yMin) / 8);
+    if (showGrid) {
+      ctx.strokeStyle = gridLine; ctx.lineWidth = 1;
+      for (let gx = Math.ceil(view.xMin / xTickStep) * xTickStep; gx <= view.xMax; gx += xTickStep) {
+        const px = toPx(gx); ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, ch); ctx.stroke();
+      }
+      for (let gy = Math.ceil(yMin / yTickStep) * yTickStep; gy <= yMax; gy += yTickStep) {
+        const py = toPy(gy); ctx.beginPath(); ctx.moveTo(0, py); ctx.lineTo(cw, py); ctx.stroke();
+      }
+    }
+    if (showAxes) {
+      ctx.strokeStyle = axisColor; ctx.lineWidth = 1.2;
+      if (view.xMin <= 0 && view.xMax >= 0) { const px = toPx(0); ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, ch); ctx.stroke(); }
+      if (yMin <= 0 && yMax >= 0) { const py = toPy(0); ctx.beginPath(); ctx.moveTo(0, py); ctx.lineTo(cw, py); ctx.stroke(); }
+      ctx.fillStyle = tickColor; ctx.font = '10px "Geist Mono", monospace';
+      for (let gx = Math.ceil(view.xMin / xTickStep) * xTickStep; gx <= view.xMax; gx += xTickStep) {
+        if (Math.abs(gx) < xTickStep / 1000) continue;
+        ctx.fillText(fmtNum(Math.round(gx * 1000) / 1000), toPx(gx) + 3, ch - 4);
+      }
+      for (let gy = Math.ceil(yMin / yTickStep) * yTickStep; gy <= yMax; gy += yTickStep) {
+        if (Math.abs(gy) < yTickStep / 1000) continue;
+        ctx.fillText(fmtNum(Math.round(gy * 1000) / 1000), 3, toPy(gy) - 3);
+      }
+    }
+
+    for (const { f, pts } of series) {
+      ctx.strokeStyle = f.color;
+      ctx.lineWidth = f.width;
+      ctx.setLineDash(f.lineStyle === 'dashed' ? [8, 5] : f.lineStyle === 'dotted' ? [2, 4] : []);
+      ctx.beginPath();
+      let started = false;
+      for (const [x, y] of pts) {
+        if (y === null) { started = false; continue; }
+        const px = toPx(x), py = toPy(y);
+        if (py < -100 || py > ch + 100) { started = false; continue; }
+        if (!started) { ctx.moveTo(px, py); started = true; } else { ctx.lineTo(px, py); }
+      }
+      ctx.stroke();
+    }
+    ctx.setLineDash([]);
+    drawToolOverlays(ctx, toPx, toPy, cw, ch, yMin, yMax);
+  }
+
+  function zoomPlot(factor) {
+    const mid = (view.xMin + view.xMax) / 2;
+    const half = (view.xMax - view.xMin) / 2 * factor;
+    view.xMin = mid - half; view.xMax = mid + half;
+    drawPlot();
+  }
+  function fitView() {
+    const visible = functions.filter(f => f.visible);
+    if (!visible.length) { view.xMin = -10; view.xMax = 10; drawPlot(); return; }
+    view.xMin = -10; view.xMax = 10;
+    drawPlot();
+  }
+  function resetView() { view.xMin = -10; view.xMax = 10; drawPlot(); }
+
+  // ======================================================================
+  // Analysis tools: state, panel toggling, per-tool compute + overlay draw
+  // ======================================================================
+  let activeTool = null; // 'tangent' | 'area' | 'extrema' | 'intersections' | 'limit' | 'asymptotes' | null
+  const toolData = { tangent: null, area: null, extrema: null, intersections: null, limit: null, asymptotes: null };
+  let animFrameId = null;
+  function stopAnim() { if (animFrameId) { cancelAnimationFrame(animFrameId); animFrameId = null; } }
+  function animEnabled() { return settings.uiAnimations && settings.graphAnimations && !settings.reduceAnimations && !settings.lowResourceMode && !reduceMotion; }
+
+  document.querySelectorAll('.tool-toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tool = btn.dataset.tool;
+      const turningOn = activeTool !== tool;
+      activeTool = turningOn ? tool : null;
+      document.querySelectorAll('.tool-toggle-btn').forEach(b => b.classList.toggle('!bg-primary', b.dataset.tool === activeTool));
+      document.querySelectorAll('.tool-toggle-btn').forEach(b => b.classList.toggle('!text-on-primary', b.dataset.tool === activeTool));
+      document.querySelectorAll('.tool-panel').forEach(p => p.classList.add('hidden'));
+      stopAnim();
+      if (turningOn) {
+        document.getElementById('panel-' + tool).classList.remove('hidden');
+        recomputeActiveTool(true);
+      } else {
+        drawPlot();
+      }
+    });
+  });
+  function recomputeActiveTool(justOpened) {
+    if (!activeTool) return;
+    const f = activeFn();
+    if (!f) return;
+    if (activeTool === 'tangent') computeAndRenderTangent(justOpened);
+    else if (activeTool === 'area') computeAndRenderArea(justOpened);
+    else if (activeTool === 'extrema') computeAndRenderExtrema();
+    else if (activeTool === 'intersections') computeAndRenderIntersections();
+    else if (activeTool === 'limit') computeAndRenderLimit();
+    else if (activeTool === 'asymptotes') computeAndRenderAsymptotes();
+    else drawPlot();
+  }
+
+  // ---------- Tangent ----------
+  document.getElementById('tangent-x-input').addEventListener('change', () => computeAndRenderTangent(true));
+  document.getElementById('tangent-replay-btn').addEventListener('click', () => computeAndRenderTangent(true));
+  function computeAndRenderTangent(animate) {
+    const f = activeFn(); if (!f) return;
+    const xInput = document.getElementById('tangent-x-input');
+    const a = xInput.value !== '' ? parseFloat(xInput.value) : (view.xMin + view.xMax) / 2;
+    xInput.value = fmtNum(Math.round(a * 1000) / 1000);
+    const ya = safeEval(f.fn, a);
+    const m = numericDerivative(f.fn, a);
+    const resultEl = document.getElementById('tangent-result');
+    if (ya === null || m === null) {
+      resultEl.textContent = 'La función no está definida en ese punto.';
+      toolData.tangent = null; drawPlot();
+      return;
+    }
+    const b = ya - m * a;
+    toolData.tangent = { a, ya, m, b };
+    resultEl.innerHTML = `$f(${fmtNum(Math.round(a * 100) / 100)}) = ${fmtNum(Math.round(ya * 1000) / 1000)}$, $f'(${fmtNum(Math.round(a * 100) / 100)}) \\approx ${fmtNum(Math.round(m * 1000) / 1000)}$<br>Recta tangente: $y = ${fmtNum(Math.round(m * 1000) / 1000)}(x - ${fmtNum(Math.round(a * 100) / 100)}) + ${fmtNum(Math.round(ya * 1000) / 1000)}$`;
+    renderMath(resultEl);
+    if (animate && animEnabled()) animateTangent(f, a, ya, m, b); else drawPlot();
+  }
+  function animateTangent(f, a, ya, m, b) {
+    stopAnim();
+    const t0 = performance.now(), duration = 900;
+    function frame(t) {
+      const p = Math.min(1, (t - t0) / duration);
+      const h = (1 - p) * (view.xMax - view.xMin) * 0.18 + 0.001;
+      toolData.tangent = { a, ya, m, b, secantH: p < 1 ? h : null };
+      drawPlot();
+      if (p < 1) animFrameId = requestAnimationFrame(frame); else animFrameId = null;
+    }
+    animFrameId = requestAnimationFrame(frame);
+  }
+
+  // ---------- Area / integral ----------
+  document.getElementById('area-a-input').addEventListener('change', () => computeAndRenderArea(true));
+  document.getElementById('area-b-input').addEventListener('change', () => computeAndRenderArea(true));
+  document.getElementById('area-replay-btn').addEventListener('click', () => computeAndRenderArea(true));
+  function computeAndRenderArea(animate) {
+    const f = activeFn(); if (!f) return;
+    let a = parseFloat(document.getElementById('area-a-input').value);
+    let b = parseFloat(document.getElementById('area-b-input').value);
+    if (!Number.isFinite(a) || !Number.isFinite(b)) return;
+    const value = simpsonIntegral(f.fn, a, b);
+    const resultEl = document.getElementById('area-result');
+    let antiderivativeLine = '';
+    if (f.node) {
+      const F = tryIntegrate(f.node, 'x');
+      antiderivativeLine = F
+        ? `Antiderivada: $\\displaystyle\\int ${f.latex}\\,dx = ${toLatex(fullSimplify(F))} + C$<br>`
+        : `No se encontró una antiderivada elemental simple; se muestra el valor numérico de la integral definida.<br>`;
+    }
+    resultEl.innerHTML = `${antiderivativeLine}Integral definida: $\\displaystyle\\int_{${fmtNum(a)}}^{${fmtNum(b)}} ${f.latex}\\,dx \\approx ${fmtNum(Math.round(value * 1000) / 1000)}$`;
+    renderMath(resultEl);
+    toolData.area = { a, b, value, rects: null };
+    if (animate && animEnabled()) animateArea(f, a, b); else drawPlot();
+  }
+  function animateArea(f, a, b) {
+    stopAnim();
+    const t0 = performance.now(), duration = 1100;
+    function frame(t) {
+      const p = Math.min(1, (t - t0) / duration);
+      const n = Math.max(4, Math.round(4 + p * 60));
+      toolData.area = { a, b, value: toolData.area.value, rects: p < 1 ? n : null };
+      drawPlot();
+      if (p < 1) animFrameId = requestAnimationFrame(frame); else animFrameId = null;
+    }
+    animFrameId = requestAnimationFrame(frame);
+  }
+
+  // ---------- Extrema / critical points ----------
+  function computeAndRenderExtrema() {
+    const f = activeFn(); if (!f) return;
+    const pts = findCriticalPoints(f.fn, view.xMin, view.xMax).map(p => ({ ...p, kind: classifyCritical(f.fn, p.x) }));
+    toolData.extrema = pts;
+    const resultEl = document.getElementById('extrema-result');
+    if (!pts.length) {
+      resultEl.innerHTML = 'No se detectaron puntos críticos en el rango visible.';
+    } else {
+      const maxima = pts.filter(p => p.kind === 'máximo local');
+      const minima = pts.filter(p => p.kind === 'mínimo local');
+      const globalMax = maxima.length ? maxima.reduce((a, b) => a.y > b.y ? a : b) : null;
+      const globalMin = minima.length ? minima.reduce((a, b) => a.y < b.y ? a : b) : null;
+      resultEl.innerHTML = pts.map(p => {
+        const tag = (globalMax && p === globalMax) ? ' — máximo global en el rango visible' : (globalMin && p === globalMin) ? ' — mínimo global en el rango visible' : '';
+        return `$(${fmtNum(Math.round(p.x * 1000) / 1000)}, ${fmtNum(Math.round(p.y * 1000) / 1000)})$: ${p.kind}${tag}`;
+      }).join('<br>');
+    }
+    renderMath(resultEl);
+    drawPlot();
+  }
+
+  // ---------- Intersections ----------
+  function computeAndRenderIntersections() {
+    const f = activeFn(); if (!f) return;
+    const xAxisPts = findSignChanges(x => safeEval(f.fn, x), view.xMin, view.xMax).map(x => ({ x, y: 0 }));
+    const yAxisY = safeEval(f.fn, 0);
+    const fnFn = fns => fns.filter(g => g.id !== f.id && g.visible).map(g => ({
+      other: g,
+      pts: findSignChanges(x => { const a = safeEval(f.fn, x), b = safeEval(g.fn, x); return (a === null || b === null) ? null : a - b; }, view.xMin, view.xMax),
+    }));
+    const between = fnFn(functions);
+    toolData.intersections = { xAxisPts, yAxisY, between };
+    const resultEl = document.getElementById('intersections-result');
+    const lines = [];
+    if (xAxisPts.length) lines.push('Con el eje x: ' + xAxisPts.map(p => `$(${fmtNum(Math.round(p.x * 1000) / 1000)}, 0)$`).join(', '));
+    else lines.push('Sin intersecciones con el eje x en el rango visible.');
+    lines.push(yAxisY !== null ? `Con el eje y: $(0, ${fmtNum(Math.round(yAxisY * 1000) / 1000)})$` : 'No definida en x = 0.');
+    between.forEach(b => {
+      if (b.pts.length) lines.push(`Con ${b.other.raw || b.other.latex}: ` + b.pts.map(x => `$x \\approx ${fmtNum(Math.round(x * 1000) / 1000)}$`).join(', '));
+    });
+    resultEl.innerHTML = lines.join('<br>');
+    renderMath(resultEl);
+    drawPlot();
+  }
+
+  // ---------- Limit ----------
+  document.getElementById('limit-eval-btn').addEventListener('click', () => computeAndRenderLimit(true));
+  document.getElementById('limit-replay-btn').addEventListener('click', () => computeAndRenderLimit(true));
+  function computeAndRenderLimit(animate) {
+    const f = activeFn(); if (!f) return;
+    const raw = document.getElementById('limit-x-input').value.trim().toLowerCase();
+    const resultEl = document.getElementById('limit-result');
+    let targetLabel, leftVal, rightVal, xTarget = null, isInfinite = false;
+    if (raw === 'inf' || raw === '+inf' || raw === 'infinito' || raw === '+infinito') {
+      isInfinite = true; targetLabel = '+\\infty';
+      rightVal = safeEval(f.fn, 1e7); leftVal = rightVal;
+    } else if (raw === '-inf' || raw === '-infinito') {
+      isInfinite = true; targetLabel = '-\\infty';
+      leftVal = safeEval(f.fn, -1e7); rightVal = leftVal;
+    } else {
+      xTarget = parseFloat(raw);
+      if (!Number.isFinite(xTarget)) { resultEl.textContent = 'Escribe un número, "inf" o "-inf".'; return; }
+      targetLabel = fmtNum(xTarget);
+      leftVal = safeEval(f.fn, xTarget - 1e-5);
+      rightVal = safeEval(f.fn, xTarget + 1e-5);
+    }
+    toolData.limit = { xTarget, isInfinite, leftVal, rightVal };
+    const fmt = v => v === null ? '\\text{no definido}' : fmtNum(Math.round(v * 1000) / 1000);
+    let line;
+    if (leftVal !== null && rightVal !== null && Math.abs(leftVal - rightVal) < 1e-2) {
+      line = `$\\displaystyle\\lim_{x \\to ${targetLabel}} ${f.latex} \\approx ${fmt(rightVal)}$`;
+    } else if (leftVal !== null && rightVal !== null) {
+      line = `Límite lateral izquierdo $\\approx ${fmt(leftVal)}$, derecho $\\approx ${fmt(rightVal)}$ — no coinciden, el límite no existe (o hay una asíntota).`;
+    } else {
+      line = 'No se pudo evaluar cerca de ese punto.';
+    }
+    resultEl.innerHTML = line;
+    renderMath(resultEl);
+    if (animate && animEnabled() && !isInfinite) animateLimit(f, xTarget); else drawPlot();
+  }
+  function animateLimit(f, xTarget) {
+    stopAnim();
+    const t0 = performance.now(), duration = 1200;
+    const span = (view.xMax - view.xMin) * 0.25;
+    function frame(t) {
+      const p = Math.min(1, (t - t0) / duration);
+      const d = (1 - p) * span + 1e-4;
+      toolData.limit = { ...toolData.limit, xTarget, approachLeft: xTarget - d, approachRight: xTarget + d };
+      drawPlot();
+      if (p < 1) animFrameId = requestAnimationFrame(frame); else animFrameId = null;
+    }
+    animFrameId = requestAnimationFrame(frame);
+  }
+
+  // ---------- Asymptotes ----------
+  function computeAndRenderAsymptotes() {
+    const f = activeFn(); if (!f) return;
+    const vertical = findVerticalAsymptotes(f.fn, view.xMin, view.xMax);
+    const horizontal = checkHorizontalAsymptote(f.fn);
+    const obliqueRight = horizontal.right === undefined ? checkObliqueAsymptote(f.fn, 1) : null;
+    const obliqueLeft = horizontal.left === undefined ? checkObliqueAsymptote(f.fn, -1) : null;
+    toolData.asymptotes = { vertical, horizontal, obliqueRight, obliqueLeft };
+    const lines = [];
+    vertical.forEach(x => lines.push(`Vertical: $x = ${fmtNum(Math.round(x * 1000) / 1000)}$`));
+    if (horizontal.right !== undefined) lines.push(`Horizontal (x \\to +\\infty): $y = ${fmtNum(Math.round(horizontal.right * 1000) / 1000)}$`);
+    if (horizontal.left !== undefined) lines.push(`Horizontal (x \\to -\\infty): $y = ${fmtNum(Math.round(horizontal.left * 1000) / 1000)}$`);
+    if (obliqueRight) lines.push(`Oblicua (x \\to +\\infty): $y = ${fmtNum(Math.round(obliqueRight.m * 1000) / 1000)}x + ${fmtNum(Math.round(obliqueRight.b * 1000) / 1000)}$`);
+    if (obliqueLeft) lines.push(`Oblicua (x \\to -\\infty): $y = ${fmtNum(Math.round(obliqueLeft.m * 1000) / 1000)}x + ${fmtNum(Math.round(obliqueLeft.b * 1000) / 1000)}$`);
+    const resultEl = document.getElementById('asymptotes-result');
+    resultEl.innerHTML = lines.length ? lines.map(l => `$${l.split(': $')[1] ? l.split(': ')[0] + ': ' + l.split(': ')[1] : l}$`).join('<br>').replace(/\$\$/g, '$') : 'No se detectaron asíntotas en el rango visible.';
+    resultEl.innerHTML = lines.length ? lines.join('<br>') : 'No se detectaron asíntotas en el rango visible.';
+    renderMath(resultEl);
+    drawPlot();
+  }
+
+  // ---------- Overlay drawing (called from drawPlot) ----------
+  function drawToolOverlays(ctx, toPx, toPy, cw, ch, yMin, yMax) {
+    const f = activeFn();
+    if (!activeTool || !f) return;
+
+    if (activeTool === 'tangent' && toolData.tangent) {
+      const { a, ya, m, b, secantH } = toolData.tangent;
+      const useM = secantH ? (safeEval(f.fn, a + secantH) - safeEval(f.fn, a - secantH)) / (2 * secantH) : m;
+      const useB = ya - useM * a;
+      ctx.strokeStyle = '#e0703f'; ctx.lineWidth = 2; ctx.setLineDash(secantH ? [6, 4] : []);
+      ctx.beginPath(); ctx.moveTo(toPx(view.xMin), toPy(useM * view.xMin + useB)); ctx.lineTo(toPx(view.xMax), toPy(useM * view.xMax + useB)); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#e0703f';
+      ctx.beginPath(); ctx.arc(toPx(a), toPy(ya), 4, 0, Math.PI * 2); ctx.fill();
+    }
+
+    if (activeTool === 'area' && toolData.area) {
+      const { a, b, rects } = toolData.area;
+      ctx.fillStyle = 'rgba(79,143,224,0.28)';
+      if (rects) {
+        const n = rects, h = (b - a) / n;
+        for (let i = 0; i < n; i++) {
+          const xL = a + i * h, xR = xL + h, xm = (xL + xR) / 2;
+          const y = safeEval(f.fn, xm); if (y === null) continue;
+          ctx.fillRect(toPx(xL), toPy(Math.max(0, y)), Math.max(1, toPx(xR) - toPx(xL)), Math.abs(toPy(y) - toPy(0)));
+        }
+      } else {
+        ctx.beginPath();
+        const N = 200;
+        for (let i = 0; i <= N; i++) {
+          const x = a + (b - a) * i / N, y = safeEval(f.fn, x) ?? 0;
+          if (i === 0) ctx.moveTo(toPx(x), toPy(0)); ctx.lineTo(toPx(x), toPy(y));
+        }
+        ctx.lineTo(toPx(b), toPy(0)); ctx.closePath(); ctx.fill();
+      }
+    }
+
+    if (activeTool === 'extrema' && toolData.extrema) {
+      toolData.extrema.forEach(p => {
+        ctx.fillStyle = p.kind === 'máximo local' ? '#e0567a' : p.kind === 'mínimo local' ? '#3f9e6d' : '#d1a53d';
+        ctx.beginPath(); ctx.arc(toPx(p.x), toPy(p.y), 5, 0, Math.PI * 2); ctx.fill();
+      });
+    }
+
+    if (activeTool === 'intersections' && toolData.intersections) {
+      ctx.fillStyle = '#8a6cf0';
+      toolData.intersections.xAxisPts.forEach(p => { ctx.beginPath(); ctx.arc(toPx(p.x), toPy(0), 4, 0, Math.PI * 2); ctx.fill(); });
+      if (toolData.intersections.yAxisY !== null) { ctx.beginPath(); ctx.arc(toPx(0), toPy(toolData.intersections.yAxisY), 4, 0, Math.PI * 2); ctx.fill(); }
+      ctx.fillStyle = '#4fb8c4';
+      toolData.intersections.between.forEach(b => b.pts.forEach(x => {
+        const y = safeEval(f.fn, x); if (y === null) return;
+        ctx.beginPath(); ctx.arc(toPx(x), toPy(y), 4, 0, Math.PI * 2); ctx.fill();
+      }));
+    }
+
+    if (activeTool === 'limit' && toolData.limit) {
+      const { xTarget, approachLeft, approachRight } = toolData.limit;
+      if (xTarget !== null && xTarget !== undefined) {
+        ctx.strokeStyle = 'rgba(229,226,225,0.4)'; ctx.setLineDash([4, 4]); ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(toPx(xTarget), 0); ctx.lineTo(toPx(xTarget), ch); ctx.stroke(); ctx.setLineDash([]);
+        ctx.fillStyle = '#8a6cf0';
+        [approachLeft, approachRight].forEach(x => {
+          if (x === undefined) return;
+          const y = safeEval(f.fn, x); if (y === null) return;
+          ctx.beginPath(); ctx.arc(toPx(x), toPy(y), 4, 0, Math.PI * 2); ctx.fill();
+        });
+      }
+    }
+
+    if (activeTool === 'asymptotes' && toolData.asymptotes) {
+      ctx.strokeStyle = '#d1a53d'; ctx.lineWidth = 1.5; ctx.setLineDash([6, 4]);
+      toolData.asymptotes.vertical.forEach(x => { ctx.beginPath(); ctx.moveTo(toPx(x), 0); ctx.lineTo(toPx(x), ch); ctx.stroke(); });
+      if (toolData.asymptotes.horizontal.right !== undefined) { const y = toPy(toolData.asymptotes.horizontal.right); ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(cw, y); ctx.stroke(); }
+      if (toolData.asymptotes.horizontal.left !== undefined) { const y = toPy(toolData.asymptotes.horizontal.left); ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(cw, y); ctx.stroke(); }
+      [toolData.asymptotes.obliqueRight, toolData.asymptotes.obliqueLeft].forEach(o => {
+        if (!o) return;
+        ctx.beginPath(); ctx.moveTo(toPx(view.xMin), toPy(o.m * view.xMin + o.b)); ctx.lineTo(toPx(view.xMax), toPy(o.m * view.xMax + o.b)); ctx.stroke();
+      });
+      ctx.setLineDash([]);
+    }
+  }
+
+  document.getElementById('plot-zoom-in').addEventListener('click', () => zoomPlot(0.7));
+  document.getElementById('plot-zoom-out').addEventListener('click', () => zoomPlot(1 / 0.7));
+  document.getElementById('plot-fit-btn').addEventListener('click', fitView);
+  document.getElementById('plot-reset-btn').addEventListener('click', resetView);
+  document.getElementById('toggle-grid-btn').addEventListener('click', (e) => { showGrid = !showGrid; e.currentTarget.style.opacity = showGrid ? '1' : '.5'; drawPlot(); });
+  document.getElementById('toggle-axes-btn').addEventListener('click', (e) => { showAxes = !showAxes; e.currentTarget.style.opacity = showAxes ? '1' : '.5'; drawPlot(); });
+  document.getElementById('plot-capture-btn').addEventListener('click', () => {
+    const canvas = document.getElementById('plot-canvas');
+    const link = document.createElement('a');
+    link.download = 'grafica-derivante.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  });
+  document.getElementById('plot-theme-btn').addEventListener('click', () => {
+    settings.theme = resolveTheme() === 'light' ? 'dark' : 'light';
+    saveSettings(settings);
+    applySettings();
+    drawPlot();
+  });
+
+  (() => {
+    const canvas = document.getElementById('plot-canvas');
+    const readout = document.getElementById('hover-readout');
+    let dragging = false, lastX = 0, downX = 0, downY = 0, moved = 0;
+    canvas.addEventListener('pointerdown', e => {
+      dragging = true; lastX = e.clientX; downX = e.clientX; downY = e.clientY; moved = 0;
+      canvas.setPointerCapture(e.pointerId);
+    });
+    canvas.addEventListener('pointermove', e => {
+      const rect = canvas.getBoundingClientRect();
+      const cw = rect.width, ch = rect.height;
+      const xVal = view.xMin + (e.clientX - rect.left) / cw * (view.xMax - view.xMin);
+      if (dragging) {
+        const dx = e.clientX - lastX; lastX = e.clientX;
+        moved += Math.abs(e.clientX - downX) + Math.abs(e.clientY - downY);
+        const span = view.xMax - view.xMin;
+        const shift = -(dx / cw) * span;
+        view.xMin += shift; view.xMax += shift;
+        drawPlot();
+      }
+      if (view.yMin !== null) {
+        const yVal = view.yMax - (e.clientY - rect.top) / ch * (view.yMax - view.yMin);
+        const lines = functions.filter(f => f.visible).map(f => {
+          let y = NaN, d = NaN;
+          try { y = f.fn(xVal); } catch (_) {}
+          try { const h = 1e-4; d = (f.fn(xVal + h) - f.fn(xVal - h)) / (2 * h); } catch (_) {}
+          const label = f.isDerivative ? "f'(x)" : 'f(x)';
+          return `${label} ≈ ${Number.isFinite(y) ? fmtNum(Math.round(y * 1000) / 1000) : '—'} · pendiente ≈ ${Number.isFinite(d) ? fmtNum(Math.round(d * 1000) / 1000) : '—'}`;
+        });
+        readout.innerHTML = `x ≈ ${fmtNum(Math.round(xVal * 1000) / 1000)}, y ≈ ${fmtNum(Math.round(yVal * 1000) / 1000)}<br>${lines.join('<br>')}`;
+        readout.classList.remove('hidden');
+      }
+    });
+    canvas.addEventListener('pointerup', (e) => {
+      dragging = false;
+      if (moved < 6 && activeTool === 'tangent') {
+        const rect = canvas.getBoundingClientRect();
+        const xVal = view.xMin + (e.clientX - rect.left) / rect.width * (view.xMax - view.xMin);
+        document.getElementById('tangent-x-input').value = fmtNum(Math.round(xVal * 100) / 100);
+        computeAndRenderTangent(true);
+      }
+    });
+    canvas.addEventListener('pointerleave', () => { dragging = false; readout.classList.add('hidden'); });
+    canvas.addEventListener('wheel', e => { e.preventDefault(); zoomPlot(e.deltaY > 0 ? 1.1 : 0.9); }, { passive: false });
+  })();
+
+  window.addEventListener('resize', () => drawPlot());
+
+  loadInitialFunctions();
+  drawPlot();
+})();
+</script>
+</body>
+</html>

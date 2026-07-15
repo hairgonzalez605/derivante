@@ -1,0 +1,61 @@
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          background: "var(--c-background)",
+          surface: "var(--c-surface)",
+          "surface-1": "var(--c-surface-1)",
+          "surface-2": "var(--c-surface-2)",
+          "surface-low": "var(--c-surface-low)",
+          "surface-high": "var(--c-surface-high)",
+          "surface-highest": "var(--c-surface-highest)",
+          primary: "var(--c-primary)",
+          "on-primary": "var(--c-on-primary)",
+          "on-surface": "var(--c-on-surface)",
+          "on-surface-variant": "var(--c-on-surface-variant)",
+          "on-surface-dim": "var(--c-on-surface-dim)",
+          outline: "var(--c-outline)",
+          "outline-strong": "var(--c-outline-strong)",
+          "outline-faint": "var(--c-outline-faint)",
+        },
+        fontFamily: {
+          sans: ["Geist", "sans-serif"],
+          mono: ["Geist Mono", "monospace"],
+        },
+        fontSize: {
+          display: ["48px", { lineHeight: "1.1", letterSpacing: "-0.04em", fontWeight: "600" }],
+          "headline-lg": ["32px", { lineHeight: "1.2", letterSpacing: "-0.03em", fontWeight: "600" }],
+          "headline-lg-mobile": ["24px", { lineHeight: "1.2", letterSpacing: "-0.02em", fontWeight: "600" }],
+          "headline-md": ["20px", { lineHeight: "1.4", letterSpacing: "-0.02em", fontWeight: "500" }],
+          "body-lg": ["16px", { lineHeight: "1.6", letterSpacing: "-0.01em", fontWeight: "400" }],
+          "body-md": ["14px", { lineHeight: "1.5", letterSpacing: "0", fontWeight: "400" }],
+          "label-md": ["12px", { lineHeight: "1", letterSpacing: "0.05em", fontWeight: "500" }],
+          "mono-math": ["18px", { lineHeight: "1.5", letterSpacing: "0", fontWeight: "400" }],
+        },
+        borderRadius: {
+          sm: "0.25rem",
+          DEFAULT: "0.5rem",
+          md: "0.75rem",
+          lg: "1rem",
+          xl: "1.5rem",
+        },
+        spacing: {
+          xs: "4px",
+          sm: "8px",
+          md: "16px",
+          lg: "24px",
+          xl: "40px",
+          xxl: "80px",
+          gutter: "24px",
+        },
+        maxWidth: {
+          "container-max": "1200px",
+          focus: "800px",
+        },
+        transitionTimingFunction: {
+          "out-standard": "cubic-bezier(0.23, 1, 0.32, 1)",
+        },
+      },
+    },
+  };

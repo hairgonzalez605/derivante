@@ -1,0 +1,1698 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Derivante — Calculadora de derivadas paso a paso</title>
+<meta name="description" content="Calcula derivadas simbólicas al instante. Escribe una función, sigue cada regla aplicada paso a paso y explora su gráfica interactiva.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23090909'/%3E%3Ctext x='16' y='22' font-family='Georgia,serif' font-size='16' font-style='italic' fill='white' text-anchor='middle'%3Ed/dx%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..500,0..1,0&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script type="module" src="https://unpkg.com/@splinetool/viewer@latest/build/spline-viewer.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="tailwind-config.js"></script>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-background text-on-surface font-sans antialiased">
+<a href="#funcion" class="skip-link font-body-md">Saltar al contenido principal</a>
+
+<!-- ============ HEADER ============ -->
+<header class="sticky top-0 z-40 border-b border-outline bg-background/85 backdrop-blur-md">
+  <div class="max-w-container-max mx-auto flex items-center justify-between px-lg py-sm md:py-md">
+    <a href="#top" class="flex items-center gap-sm shrink-0">
+      <span class="flex h-9 w-9 items-center justify-center rounded-md bg-surface-1 border border-outline font-mono text-sm italic text-on-surface">d/dx</span>
+      <span class="font-sans text-headline-md font-semibold tracking-tight">Derivante</span>
+    </a>
+
+    <nav class="hidden md:flex items-center gap-xl" aria-label="Principal">
+      <a class="relative pb-1 font-body-md text-on-surface font-medium border-b-2 border-primary" href="#funcion">Calculadora</a>
+      <a class="pb-1 font-body-md text-on-surface-variant hover:text-on-surface transition-colors" href="Graficas.html">Gráficas</a>
+      <a class="pb-1 font-body-md text-on-surface-variant hover:text-on-surface transition-colors" href="#como-funciona">Cómo funciona</a>
+    </nav>
+
+    <div class="flex items-center gap-xs">
+      <button id="header-history-btn" class="hidden sm:inline-flex btn-ghost h-9 w-9 items-center justify-center rounded-full" title="Historial de cálculos" aria-label="Historial de cálculos">
+        <span class="material-symbols-outlined text-[20px]">history</span>
+      </button>
+      <button id="header-settings-btn" class="hidden sm:inline-flex btn-ghost h-9 w-9 items-center justify-center rounded-full" title="Ajustes" aria-label="Ajustes">
+        <span class="material-symbols-outlined text-[20px]">tune</span>
+      </button>
+      <a href="#" class="hidden sm:inline-flex btn-ghost h-9 items-center gap-1 rounded-full px-3 font-body-md" title="Ver en GitHub">
+        <span class="material-symbols-outlined text-[18px]">code</span>
+        <span class="font-body-md">GitHub</span>
+      </a>
+      <button id="menu-toggle" class="md:hidden btn-ghost h-9 w-9 inline-flex items-center justify-center rounded-full" aria-expanded="false" aria-controls="mobile-nav" aria-label="Abrir menú">
+        <span class="material-symbols-outlined text-[22px]" id="menu-icon">menu</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="mobile-nav" class="md:hidden grid border-t border-outline">
+    <div>
+      <nav class="flex flex-col px-lg py-md gap-md" aria-label="Principal (móvil)">
+        <a class="font-body-lg font-medium" href="#funcion">Calculadora</a>
+        <a class="font-body-lg text-on-surface-variant" href="Graficas.html">Gráficas</a>
+        <a class="font-body-lg text-on-surface-variant" href="#como-funciona">Cómo funciona</a>
+        <div class="flex items-center gap-md pt-sm border-t border-outline">
+          <button id="header-history-btn-mobile" class="btn-ghost h-9 w-9 inline-flex items-center justify-center rounded-full" aria-label="Historial"><span class="material-symbols-outlined text-[20px]">history</span></button>
+          <button id="header-settings-btn-mobile" class="btn-ghost h-9 w-9 inline-flex items-center justify-center rounded-full" aria-label="Ajustes"><span class="material-symbols-outlined text-[20px]">tune</span></button>
+        </div>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ============ HERO — Componente 1 (escena 3D + spotlight) ============ -->
+  <section class="border-b border-outline">
+    <div class="max-w-container-max mx-auto px-lg py-lg md:py-xl">
+      <div class="card reveal grid grid-cols-1 md:grid-cols-2 overflow-hidden">
+        <div class="relative z-10 flex flex-col justify-center gap-md p-xl md:p-xxl">
+          <div class="power-demo inline-flex items-center gap-sm text-on-surface-variant text-base sm:text-lg select-none w-fit" id="power-demo" aria-hidden="true">
+            <span>d/dx&nbsp;[&nbsp;x<sup class="exp-before">3</sup>&nbsp;]</span>
+            <span class="material-symbols-outlined text-[18px] text-outline-strong">arrow_forward</span>
+            <span class="text-on-surface"><span class="coef">3</span>x<sup class="exp-after">2</sup></span>
+          </div>
+          <h1 class="font-sans text-headline-lg-mobile md:text-display text-balance">Deriva cualquier función, paso a paso.</h1>
+          <p class="font-body-lg text-on-surface-variant max-w-md text-balance">Escribe una expresión y obtén su derivada exacta, con cada regla explicada y una gráfica interactiva del resultado.</p>
+          <div class="flex flex-col sm:flex-row gap-sm pt-sm">
+            <a href="#funcion" class="btn btn-glass rounded-lg px-xl py-md font-body-md font-bold text-center">Empezar a calcular</a>
+            <button type="button" id="hero-ver-ejemplos" class="btn btn-secondary rounded-lg px-xl py-md font-body-md font-bold text-center">Ver ejemplos</button>
+          </div>
+        </div>
+        <div class="relative min-h-[320px] md:min-h-[480px] bg-surface">
+          <div id="spline-fallback" class="absolute inset-0 flex items-center justify-center gap-sm text-on-surface-variant font-label-md uppercase tracking-widest transition-opacity duration-500">
+            <span class="material-symbols-outlined animate-spin text-[18px]">progress_activity</span> Cargando escena 3D…
+          </div>
+          <spline-viewer id="spline-viewer" url="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode" class="absolute inset-0 w-full h-full"></spline-viewer>
+          <div class="pointer-events-none absolute inset-0 md:bg-gradient-to-r md:from-surface-1/70 md:via-transparent md:to-transparent md:w-1/3"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="max-w-container-max mx-auto px-lg lg:px-xl py-xl grid grid-cols-1 lg:grid-cols-12 gap-xl">
+
+    <!-- ============ MAIN COLUMN ============ -->
+    <div class="lg:col-span-9 space-y-xl">
+      <div class="max-w-focus mx-auto w-full space-y-xl">
+
+        <!-- Function input -->
+        <section id="funcion" class="card reveal p-lg space-y-lg scroll-mt-24">
+          <div class="flex flex-wrap items-center justify-between gap-sm">
+            <h2 class="font-sans text-headline-md">Función a derivar</h2>
+            <span class="font-label-md text-on-surface-variant uppercase tracking-widest">Modo simbólico</span>
+          </div>
+
+          <div class="expr-shell flex items-center gap-sm p-sm pl-md">
+            <span class="material-symbols-outlined text-outline-strong text-[20px] shrink-0" aria-hidden="true">functions</span>
+            <input id="expression" type="text" inputmode="text" autocomplete="off" spellcheck="false"
+              class="flex-1 min-w-0 bg-transparent border-0 focus:ring-0 focus:outline-none font-mono text-mono-math text-on-surface placeholder:text-on-surface-variant/70 py-2"
+              placeholder="Escribe una función, por ejemplo: sin(x^2 + 2)"
+              value="sin(x^2 + 2)"
+              aria-label="Expresión a derivar">
+            <button id="voice-dictate-btn" type="button" class="btn-ghost h-9 w-9 shrink-0 relative inline-flex items-center justify-center rounded-full" title="Dictar función por voz" aria-label="Dictar función por voz">
+              <span id="voice-btn-pulse" class="hidden absolute inset-0 rounded-full bg-primary/40 animate-ping"></span>
+              <span id="voice-btn-icon" class="material-symbols-outlined text-[19px] relative">mic</span>
+            </button>
+            <button id="clear-expression" type="button" class="btn-ghost h-9 w-9 shrink-0 inline-flex items-center justify-center rounded-full" title="Borrar expresión" aria-label="Borrar expresión">
+              <span class="material-symbols-outlined text-[19px]">close</span>
+            </button>
+            <button id="calculate-btn" type="button" class="btn btn-primary rounded-full h-10 px-md sm:px-lg shrink-0 font-body-md font-bold inline-flex items-center gap-1">
+              <span class="hidden sm:inline">Calcular</span>
+              <span class="material-symbols-outlined text-[19px]">arrow_forward</span>
+            </button>
+          </div>
+
+          <!-- Voice dictation status -->
+          <div id="voice-status-bar" class="hidden items-center gap-sm px-md py-sm rounded-lg bg-surface-low border border-outline">
+            <span id="voice-status-icon" class="material-symbols-outlined text-[18px] text-primary shrink-0">mic</span>
+            <div class="min-w-0 flex-1">
+              <div id="voice-status-label" class="font-label-md text-on-surface-variant uppercase tracking-widest">Esperando…</div>
+              <div id="voice-transcript" class="font-mono text-body-md text-on-surface truncate">&nbsp;</div>
+            </div>
+            <button id="voice-cancel-btn" type="button" class="btn-ghost h-7 px-3 shrink-0 rounded-full font-label-md uppercase tracking-widest">Cancelar</button>
+          </div>
+
+          <!-- Options -->
+          <div class="flex flex-wrap items-end gap-lg pt-1">
+            <label class="flex flex-col gap-xs">
+              <span class="font-label-md text-on-surface-variant uppercase tracking-widest">Variable</span>
+              <select id="variable-select" class="key rounded-md h-10 px-sm font-mono text-mono-math bg-surface-low">
+                <option>x</option><option>y</option><option>z</option><option>t</option>
+              </select>
+            </label>
+            <label class="flex flex-col gap-xs">
+              <span class="font-label-md text-on-surface-variant uppercase tracking-widest">Orden</span>
+              <select id="order-select" class="key rounded-md h-10 px-sm font-body-md bg-surface-low">
+                <option value="1">1ª derivada</option><option value="2">2ª derivada</option><option value="3">3ª derivada</option><option value="4">4ª derivada</option>
+              </select>
+            </label>
+            <label class="flex items-center gap-sm h-10 cursor-pointer select-none">
+              <input id="implicit-checkbox" type="checkbox" class="h-4 w-4 rounded border-outline-strong bg-transparent text-primary focus:ring-0 focus:ring-offset-0">
+              <span class="font-body-md text-on-surface-variant">Derivación implícita</span>
+            </label>
+          </div>
+
+          <!-- Keypad -->
+          <div>
+            <span class="font-label-md text-on-surface-variant uppercase tracking-widest">Símbolos</span>
+            <div class="grid grid-cols-5 sm:grid-cols-8 gap-sm mt-sm" role="group" aria-label="Símbolos matemáticos">
+              <button type="button" class="key insert-symbol h-11 rounded-md font-mono text-mono-math" data-insert="+">+</button>
+              <button type="button" class="key insert-symbol h-11 rounded-md font-mono text-mono-math" data-insert="-">−</button>
+              <button type="button" class="key insert-symbol h-11 rounded-md font-mono text-mono-math" data-insert="*">×</button>
+              <button type="button" class="key insert-symbol h-11 rounded-md font-mono text-mono-math" data-insert="/">÷</button>
+              <button type="button" class="key insert-symbol h-11 rounded-md font-mono text-mono-math" data-insert="^">^</button>
+              <button type="button" class="key insert-symbol h-11 rounded-md font-mono text-mono-math" data-insert="sqrt()">√</button>
+              <button type="button" class="key insert-symbol h-11 rounded-md font-mono text-mono-math" data-insert="pi">π</button>
+              <button type="button" class="key insert-symbol h-11 rounded-md font-mono text-mono-math" data-insert="e">e</button>
+              <button type="button" class="key insert-symbol h-11 rounded-md font-mono text-mono-math" data-insert="(">(</button>
+              <button type="button" class="key insert-symbol h-11 rounded-md font-mono text-mono-math" data-insert=")">)</button>
+              <button type="button" class="key insert-symbol h-11 rounded-md font-body-md" data-insert="sin()">sin</button>
+              <button type="button" class="key insert-symbol h-11 rounded-md font-body-md" data-insert="cos()">cos</button>
+              <button type="button" class="key insert-symbol h-11 rounded-md font-body-md" data-insert="tan()">tan</button>
+              <button type="button" class="key insert-symbol h-11 rounded-md font-body-md" data-insert="ln()">ln</button>
+              <button type="button" class="key insert-symbol h-11 rounded-md font-body-md" data-insert="log()">log</button>
+              <button type="button" class="key insert-symbol h-11 rounded-md font-body-md" data-insert="exp()">exp</button>
+            </div>
+          </div>
+        </section>
+
+        <div id="error-banner" class="error-banner items-start gap-sm border border-outline-strong bg-surface-1 rounded-xl p-md">
+          <span class="material-symbols-outlined text-[20px] text-on-surface shrink-0">error_outline</span>
+          <div class="min-w-0">
+            <div class="font-body-md text-on-surface font-medium">No se pudo interpretar la expresión</div>
+            <div id="error-detail" class="font-body-md text-on-surface-variant"></div>
+          </div>
+        </div>
+
+
+        <!-- Live preview -->
+        <section class="card reveal p-lg space-y-md">
+          <div class="flex items-center justify-between">
+            <h2 class="font-sans text-headline-md">Vista previa</h2>
+            <span class="font-label-md text-on-surface-variant uppercase tracking-widest hidden sm:inline">Así se interpreta tu expresión</span>
+          </div>
+          <div class="bg-surface border border-outline rounded-xl p-xl min-h-[120px] flex items-center justify-center overflow-x-auto">
+            <div id="live-preview" class="font-mono text-on-surface text-center whitespace-nowrap" style="font-size: 28px;">
+              <span id="live-preview-text">sin(x² + 2)</span><span class="inline-block w-[2px] h-6 align-middle bg-on-surface ml-1 animate-pulse" aria-hidden="true"></span>
+            </div>
+          </div>
+          <div class="flex items-center gap-xs pt-1">
+            <button id="zoom-out" type="button" class="btn-ghost h-8 w-8 inline-flex items-center justify-center rounded-full" title="Reducir" aria-label="Reducir tamaño"><span class="material-symbols-outlined text-[18px]">remove</span></button>
+            <button id="zoom-reset" type="button" class="btn-ghost h-8 px-2 inline-flex items-center justify-center rounded-full font-label-md" title="Restablecer zoom">100%</button>
+            <button id="zoom-in" type="button" class="btn-ghost h-8 w-8 inline-flex items-center justify-center rounded-full" title="Ampliar" aria-label="Ampliar tamaño"><span class="material-symbols-outlined text-[18px]">add</span></button>
+          </div>
+        </section>
+
+        <!-- Result -->
+        <section id="result-panel" class="card reveal p-lg space-y-md scroll-mt-24">
+          <h2 class="font-sans text-headline-md">Resultado</h2>
+          <dl class="space-y-1">
+            <div class="flex justify-between items-center py-sm border-b border-outline gap-md">
+              <dt class="font-label-md text-on-surface-variant uppercase tracking-widest shrink-0">Función original</dt>
+              <dd id="res-original" class="text-on-surface-dim text-right max-w-[65%] overflow-x-auto">sin(x²+2)</dd>
+            </div>
+            <div class="flex justify-between items-center py-sm border-b border-outline gap-md">
+              <dt class="font-label-md text-on-surface-variant uppercase tracking-widest shrink-0">Derivada</dt>
+              <dd id="res-derivative" class="text-on-surface font-medium text-right max-w-[65%] overflow-x-auto">2x·cos(x²+2)</dd>
+            </div>
+            <div class="flex justify-between items-center py-sm border-b border-outline gap-md">
+              <dt class="font-label-md text-on-surface-variant uppercase tracking-widest shrink-0">Dominio</dt>
+              <dd id="res-domain" class="text-on-surface-dim text-right max-w-[65%] overflow-x-auto">x ∈ ℝ</dd>
+            </div>
+            <div class="flex justify-between items-center py-sm gap-md">
+              <dt class="font-label-md text-on-surface-variant uppercase tracking-widest shrink-0">Variable</dt>
+              <dd id="res-variable" class="font-mono text-body-md text-on-surface-dim text-right truncate">x</dd>
+            </div>
+          </dl>
+          <div class="flex items-center gap-xs pt-1 border-t border-outline">
+            <button id="copy-expression" type="button" class="btn-ghost h-8 px-3 inline-flex items-center gap-1 rounded-full font-body-md mt-sm"><span class="material-symbols-outlined text-[17px]">content_copy</span>Copiar</button>
+            <button id="share-expression" type="button" class="btn-ghost h-8 px-3 inline-flex items-center gap-1 rounded-full font-body-md mt-sm"><span class="material-symbols-outlined text-[17px]">ios_share</span>Compartir</button>
+          </div>
+        </section>
+
+        <!-- Stats -->
+        <section class="card reveal p-lg space-y-md">
+          <h2 class="font-sans text-headline-md">Estadísticas</h2>
+          <div class="space-y-1">
+            <div class="flex items-center justify-between py-sm border-b border-outline">
+              <div class="flex items-center gap-sm text-on-surface-variant">
+                <span class="material-symbols-outlined text-[18px]">tag</span>
+                <span class="font-body-md">Orden</span>
+              </div>
+              <span id="stat-order" class="font-body-md text-on-surface font-medium">Primer orden</span>
+            </div>
+            <div class="flex items-center justify-between py-sm border-b border-outline">
+              <div class="flex items-center gap-sm text-on-surface-variant">
+                <span class="material-symbols-outlined text-[18px]">bolt</span>
+                <span class="font-body-md">Tiempo de cálculo</span>
+              </div>
+              <span id="stat-time" class="font-body-md text-on-surface font-medium">0.024 s</span>
+            </div>
+            <div class="flex items-center justify-between py-sm">
+              <div class="flex items-center gap-sm text-on-surface-variant">
+                <span class="material-symbols-outlined text-[18px]">layers</span>
+                <span class="font-body-md">Complejidad</span>
+              </div>
+              <span id="stat-complexity" class="font-body-md text-on-surface font-medium">Baja</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Step by step (collapsed by default) -->
+        <section class="card reveal p-lg space-y-md">
+          <button type="button" id="toggle-steps-btn" class="w-full flex items-center justify-between gap-sm text-left" aria-expanded="false" aria-controls="steps-wrapper">
+            <h2 class="font-sans text-headline-md">Ver desarrollo paso a paso</h2>
+            <span id="toggle-steps-icon" class="material-symbols-outlined text-on-surface-variant transition-transform">expand_more</span>
+          </button>
+          <div id="steps-wrapper" class="hidden space-y-md">
+            <div class="flex items-center justify-end gap-sm flex-wrap border-t border-outline pt-md">
+              <label class="flex items-center gap-sm cursor-pointer select-none">
+                <span class="font-label-md text-on-surface-variant uppercase tracking-widest">Un paso a la vez</span>
+                <span class="relative inline-block w-10 h-6 shrink-0">
+                  <input id="one-step-toggle" type="checkbox" class="peer sr-only">
+                  <span class="absolute inset-0 rounded-full bg-surface-high peer-checked:bg-primary transition-colors"></span>
+                  <span class="absolute left-1 top-1 w-4 h-4 rounded-full bg-on-surface-variant peer-checked:bg-on-primary peer-checked:translate-x-4 transition-transform"></span>
+                </span>
+              </label>
+            </div>
+            <div class="space-y-sm" id="steps-list"></div>
+            <div id="step-nav" class="hidden items-center justify-between gap-sm pt-sm">
+              <span id="step-counter" class="font-label-md text-on-surface-variant uppercase tracking-widest">Paso 1 / 1</span>
+              <div class="flex gap-sm">
+                <button id="step-prev" type="button" class="btn btn-secondary rounded-lg px-md py-2 font-body-md font-bold">Anterior</button>
+                <button id="step-next" type="button" class="btn btn-primary rounded-lg px-md py-2 font-body-md font-bold">Siguiente paso</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- AST + Tokens -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-lg">
+          <section class="card reveal p-lg space-y-md">
+            <h2 class="font-sans text-headline-md">Árbol sintáctico</h2>
+            <div class="h-48 border border-outline rounded-xl bg-surface flex items-center justify-center relative overflow-hidden">
+              <svg id="ast-svg" viewBox="0 0 220 130" class="w-full h-full p-md" aria-hidden="true"></svg>
+            </div>
+          </section>
+
+          <section class="card reveal p-lg space-y-md">
+            <h2 class="font-sans text-headline-md">Tokens</h2>
+            <div class="flex flex-wrap gap-sm" id="tokens-list"></div>
+          </section>
+        </div>
+
+        <!-- Graph -->
+        <section class="card reveal p-lg space-y-md">
+          <div class="flex flex-wrap items-center justify-between gap-sm">
+            <h2 class="font-sans text-headline-md">Gráfica interactiva</h2>
+            <div class="flex gap-xs">
+              <button id="graph-zoom-in" type="button" class="key px-sm py-1 rounded font-label-md">Acercar</button>
+              <button id="graph-zoom-out" type="button" class="key px-sm py-1 rounded font-label-md">Alejar</button>
+              <button id="graph-reset" type="button" class="key px-sm py-1 rounded font-label-md">Restablecer</button>
+            </div>
+          </div>
+          <div class="relative h-72 sm:h-96 border border-outline rounded-xl bg-surface overflow-hidden">
+            <canvas id="graph-plot"></canvas>
+            <div class="absolute bottom-sm right-sm bg-surface-high/90 backdrop-blur border border-outline p-sm rounded-lg flex flex-col gap-xs">
+              <label class="flex items-center gap-xs font-label-md text-on-surface-variant cursor-pointer">
+                <input type="checkbox" checked data-target="fx" class="graph-toggle h-3.5 w-3.5 rounded border-outline-strong bg-transparent text-on-surface focus:ring-0"> f(x)
+              </label>
+              <label class="flex items-center gap-xs font-label-md text-on-surface-variant cursor-pointer">
+                <input type="checkbox" checked data-target="dfx" class="graph-toggle h-3.5 w-3.5 rounded border-outline-strong bg-transparent text-on-surface focus:ring-0"> f'(x)
+              </label>
+            </div>
+          </div>
+        </section>
+
+        <!-- Session history -->
+        <section id="historial" class="card reveal p-lg space-y-md scroll-mt-24">
+          <div class="flex items-center justify-between gap-sm flex-wrap">
+            <h2 class="font-sans text-headline-md">Historial de la sesión</h2>
+            <button id="clear-history-btn" type="button" class="btn-ghost font-label-md uppercase tracking-widest px-2 py-1 rounded">Borrar historial</button>
+          </div>
+          <p class="font-body-md text-on-surface-variant">Se guarda solo en este navegador mientras la pestaña esté abierta. Haz clic en un cálculo para volver a verlo.</p>
+          <div class="space-y-sm" id="history-list"></div>
+        </section>
+
+      </div>
+    </div>
+
+    <!-- ============ SIDEBAR ============ -->
+    <aside class="lg:col-span-3">
+      <div class="lg:sticky lg:top-[88px] space-y-md">
+
+        <nav class="space-y-sm" aria-label="Herramientas">
+          <button type="button" class="sidebar-modal-btn card reveal p-md group flex items-center gap-md w-full text-left" data-modal="funciones">
+            <span class="material-symbols-outlined text-on-surface group-hover:-translate-y-0.5 transition-transform">functions</span>
+            <div class="min-w-0">
+              <h3 class="font-sans text-body-lg font-semibold leading-tight">Funciones</h3>
+              <p class="font-label-md text-on-surface-variant truncate">Guía rápida de reglas</p>
+            </div>
+          </button>
+          <button type="button" class="sidebar-modal-btn card reveal p-md group flex items-center gap-md w-full text-left" data-modal="variables">
+            <span class="material-symbols-outlined text-on-surface group-hover:-translate-y-0.5 transition-transform">match_case</span>
+            <div class="min-w-0">
+              <h3 class="font-sans text-body-lg font-semibold leading-tight">Variables</h3>
+              <p class="font-label-md text-on-surface-variant truncate">x, y, z, t y más</p>
+            </div>
+          </button>
+          <button type="button" class="sidebar-modal-btn card reveal p-md group flex items-center gap-md w-full text-left" data-modal="constantes">
+            <span class="material-symbols-outlined text-on-surface group-hover:-translate-y-0.5 transition-transform">push_pin</span>
+            <div class="min-w-0">
+              <h3 class="font-sans text-body-lg font-semibold leading-tight">Constantes</h3>
+              <p class="font-label-md text-on-surface-variant truncate">e, π y propias</p>
+            </div>
+          </button>
+
+          <div id="examples-section" class="card reveal overflow-hidden scroll-mt-24">
+            <button type="button" id="examples-toggle" class="w-full p-md flex items-center gap-md text-left group" aria-expanded="false" aria-controls="examples-panel">
+              <span class="material-symbols-outlined text-on-surface group-hover:-translate-y-0.5 transition-transform">lightbulb</span>
+              <div class="min-w-0 flex-1">
+                <h3 class="font-sans text-body-lg font-semibold leading-tight">Ejemplos</h3>
+                <p class="font-label-md text-on-surface-variant truncate">Problemas guiados</p>
+              </div>
+              <span id="examples-chevron" class="material-symbols-outlined text-on-surface-variant shrink-0 transition-transform">expand_more</span>
+            </button>
+            <div id="examples-panel" class="hidden border-t border-outline p-md space-y-sm max-h-[60vh] overflow-y-auto"></div>
+          </div>
+
+          <button type="button" class="sidebar-modal-btn card reveal p-md group flex items-center gap-md w-full text-left" data-modal="atajos">
+            <span class="material-symbols-outlined text-on-surface group-hover:-translate-y-0.5 transition-transform">keyboard</span>
+            <div class="min-w-0">
+              <h3 class="font-sans text-body-lg font-semibold leading-tight">Atajos</h3>
+              <p class="font-label-md text-on-surface-variant truncate">Escribe más rápido</p>
+            </div>
+          </button>
+          <a href="#historial" class="card reveal p-md group flex items-center gap-md">
+            <span class="material-symbols-outlined text-on-surface group-hover:-translate-y-0.5 transition-transform">history</span>
+            <div class="min-w-0">
+              <h3 class="font-sans text-body-lg font-semibold leading-tight">Historial</h3>
+              <p class="font-label-md text-on-surface-variant truncate">Cálculos recientes</p>
+            </div>
+          </a>
+        </nav>
+
+        <div class="reveal p-lg rounded-xl border border-outline-strong bg-gradient-to-b from-surface-1 to-surface relative overflow-hidden group">
+          <div class="relative z-10">
+            <h4 class="font-sans text-headline-md font-semibold">Derivante Pro</h4>
+            <p class="font-body-md text-on-surface-variant mt-1">Historial en la nube y acceso a la API para tus proyectos.</p>
+            <button type="button" class="btn btn-glass mt-md px-md py-2 rounded-full font-body-md font-bold">Mejorar plan</button>
+          </div>
+          <span class="material-symbols-outlined absolute -right-3 -bottom-3 text-[130px] leading-none text-on-surface opacity-[0.05] group-hover:scale-110 transition-transform select-none" aria-hidden="true">calculate</span>
+        </div>
+
+      </div>
+    </aside>
+  </div>
+
+  <!-- ============ HOW IT WORKS ============ -->
+  <section id="como-funciona" class="border-t border-outline scroll-mt-24">
+    <div class="max-w-container-max mx-auto px-lg py-xxl">
+      <div class="max-w-2xl mb-xl reveal">
+        <h2 class="font-sans text-headline-lg-mobile md:text-headline-lg">Cómo funciona</h2>
+        <p class="font-body-lg text-on-surface-variant mt-sm">Cada resultado se construye igual que lo haría un cálculo hecho a mano, en tres etapas verificables.</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-lg">
+        <div class="reveal space-y-sm">
+          <span class="font-mono text-on-surface-variant text-body-md">01</span>
+          <h3 class="font-sans text-headline-md">Analiza la expresión</h3>
+          <p class="font-body-md text-on-surface-variant">Tu función se convierte en un árbol sintáctico que respeta la precedencia de operadores.</p>
+        </div>
+        <div class="reveal space-y-sm">
+          <span class="font-mono text-on-surface-variant text-body-md">02</span>
+          <h3 class="font-sans text-headline-md">Aplica las reglas</h3>
+          <p class="font-body-md text-on-surface-variant">Reconoce cadena, producto, cociente y potencia, y las aplica en el orden correcto.</p>
+        </div>
+        <div class="reveal space-y-sm">
+          <span class="font-mono text-on-surface-variant text-body-md">03</span>
+          <h3 class="font-sans text-headline-md">Simplifica el resultado</h3>
+          <p class="font-body-md text-on-surface-variant">Agrupa términos semejantes y entrega la forma más clara de la derivada.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="border-t border-outline">
+  <div class="max-w-container-max mx-auto px-lg py-xl flex flex-col md:flex-row justify-between items-center gap-md">
+    <div class="flex flex-col items-center md:items-start gap-xs">
+      <span class="font-sans text-body-lg font-semibold">Derivante</span>
+      <span class="font-label-md text-on-surface-variant opacity-70">© 2026 Derivante · Calculadora de derivadas simbólica</span>
+    </div>
+    <nav class="flex items-center gap-xl" aria-label="Enlaces del pie de página">
+      <a class="font-label-md text-on-surface-variant hover:text-on-surface transition-colors" href="#">GitHub</a>
+      <a class="font-label-md text-on-surface-variant hover:text-on-surface transition-colors" href="#">Documentación</a>
+      <a class="font-label-md text-on-surface-variant hover:text-on-surface transition-colors" href="#">Privacidad</a>
+    </nav>
+  </div>
+</footer>
+
+<!-- ============ REFERENCE MODAL (shared shell, content injected per topic) ============ -->
+<div id="modal-overlay" class="modal-overlay hidden fixed inset-0 z-[100] items-center justify-center p-md">
+  <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" data-modal-backdrop></div>
+  <div id="modal-panel" class="relative z-10 w-full max-w-2xl max-h-[85vh] card flex flex-col overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="flex items-center justify-between gap-md p-lg border-b border-outline shrink-0">
+      <h2 id="modal-title" class="font-sans text-headline-md"></h2>
+      <button type="button" id="modal-close" class="btn-ghost h-9 w-9 shrink-0 rounded-full inline-flex items-center justify-center" aria-label="Cerrar">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div id="modal-body" class="p-lg space-y-lg overflow-y-auto"></div>
+  </div>
+</div>
+
+<script src="engine.js"></script>
+<script src="voice.js"></script>
+<script>
+(() => {
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const ORDINAL_FEM = { 1: 'primera', 2: 'segunda', 3: 'tercera', 4: 'cuarta', 5: 'quinta', 6: 'sexta', 7: 'séptima', 8: 'octava', 9: 'novena', 10: 'décima' };
+  function ordinalFem(n) { return ORDINAL_FEM[n] || `${n}ª`; }
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  // ---------- AST layout + render ----------
+  function renderASTSVG(node) {
+    const svgEl = document.getElementById('ast-svg');
+    const { nodes, edges } = layoutAST(node);
+    const leafCount = Math.max(1, nodes.filter(n => n.leaf).length);
+    const maxDepth = nodes.reduce((m, n) => Math.max(m, n.depth), 0);
+    const colW = 46, rowH = 38, padX = 26, padY = 20;
+    const W = Math.max(220, padX * 2 + (leafCount - 1) * colW);
+    const H = padY * 2 + maxDepth * rowH + 12;
+    const px = n => leafCount > 1 ? padX + n.x * colW : W / 2;
+    const py = n => padY + n.depth * rowH;
+    let svg = '';
+    for (const [pId, cId] of edges) {
+      const p = nodes[pId], c = nodes[cId];
+      svg += `<line x1="${px(p)}" y1="${py(p)}" x2="${px(c)}" y2="${py(c)}" stroke="#444748" stroke-width="1"/>`;
+    }
+    for (const n of nodes) {
+      const r = n.leaf ? 12 : 14;
+      const fs = Math.min(12, Math.max(8, 13 - String(n.label).length));
+      svg += `<circle cx="${px(n)}" cy="${py(n)}" r="${r}" fill="${n.leaf ? '#111111' : '#1c1b1b'}" stroke="#444748"/>`;
+      svg += `<text x="${px(n)}" y="${py(n) + 4}" font-family="Geist Mono, monospace" font-size="${fs}" fill="#e5e2e1" text-anchor="middle">${n.label}</text>`;
+    }
+    svgEl.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    svgEl.innerHTML = svg;
+  }
+
+  // ---------- Tokens render ----------
+  function renderTokens(rawTokens) {
+    const list = document.getElementById('tokens-list');
+    list.innerHTML = '';
+    for (const t of rawTokens) {
+      const span = document.createElement('span');
+      span.className = 'px-md py-xs bg-surface-high text-on-surface-variant font-mono text-body-md rounded-full border border-outline';
+      span.textContent = t.type === 'num' ? fmtNum(t.value) : t.value;
+      list.appendChild(span);
+    }
+  }
+
+  // ---------- Steps render (open, sequential worked-solution — nothing collapsed) ----------
+  let currentSteps = [];
+  let oneStepMode = false;
+  let stepIndex = 0;
+
+  function buildStepCard(step, index) {
+    if (step.kind === 'header') {
+      return `
+      <div class="rounded-xl border border-primary/50 bg-primary/5 p-md space-y-sm">
+        <div class="flex items-center gap-sm">
+          <span class="material-symbols-outlined text-primary text-lg">flag</span>
+          <h3 class="font-sans text-title-md text-on-surface">${step.title}</h3>
+        </div>
+        <p class="font-body-md text-on-surface-variant">${step.note}</p>
+        ${step.math ? `<div class="overflow-x-auto">$$${step.math}$$</div>` : ''}
+      </div>`;
+    }
+    if (step.kind === 'summary') {
+      return `
+      <div class="rounded-xl border border-outline-strong bg-surface-1 p-md space-y-sm">
+        <div class="flex items-center gap-sm">
+          <span class="material-symbols-outlined text-on-surface text-lg">check_circle</span>
+          <h3 class="font-sans text-title-md text-on-surface">${step.title}</h3>
+        </div>
+        <p class="font-body-md text-on-surface-variant">${step.note}</p>
+        <div class="overflow-x-auto">$$${step.math}$$</div>
+      </div>`;
+    }
+    const basico = settings.detailLevel === 'basico';
+    const hasDetail = !basico && (Boolean(step.note) || Boolean(step.limitProof));
+    const openByDefault = hasDetail && settings.detailLevel === 'detallado';
+    const eqLine = step.current ? `${step.current} = ${step.math}` : step.math;
+    const badgeNum = step.localIndex || (index + 1);
+    const limitHTML = step.limitProof ? `
+        <div class="mt-md pt-md border-t border-outline space-y-sm">
+          <div class="font-label-md text-on-surface-variant uppercase tracking-widest">Desde la definición de la derivada por límites</div>
+          ${step.limitProof.map(ls => `
+            <div>
+              ${ls.note ? `<p class="font-body-md text-on-surface-variant mb-1">${ls.note}</p>` : ''}
+              <div class="overflow-x-auto">$$${ls.math}$$</div>
+            </div>`).join('')}
+        </div>` : '';
+    return `
+      <div class="step-card rounded-xl bg-surface-low border border-outline overflow-hidden" data-open="${openByDefault}">
+        <button type="button" class="step-toggle w-full flex items-center justify-between gap-md p-md text-left" ${hasDetail ? '' : 'disabled tabindex="-1"'} aria-expanded="${openByDefault}">
+          <div class="flex items-center gap-md min-w-0">
+            <span class="w-7 h-7 shrink-0 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-xs">${badgeNum}</span>
+            <div class="min-w-0">
+              <div class="font-label-md text-on-surface-variant uppercase tracking-widest mb-1">${step.title}</div>
+              <div class="overflow-x-auto">$$${eqLine}$$</div>
+            </div>
+          </div>
+          ${hasDetail ? '<span class="step-chevron material-symbols-outlined text-on-surface-variant shrink-0">expand_more</span>' : ''}
+        </button>
+        ${hasDetail ? `<div class="step-detail"><div class="px-md pb-md pt-0 pl-[52px] border-t border-outline mt-1 pt-sm font-body-md text-on-surface-variant">${step.note || ''}${limitHTML}</div></div>` : ''}
+      </div>`;
+  }
+
+  function wireStepAccordions() {
+    document.querySelectorAll('.step-toggle').forEach(btn => {
+      if (btn.disabled) return;
+      btn.onclick = () => {
+        const card = btn.closest('.step-card');
+        const open = card.getAttribute('data-open') === 'true';
+        card.setAttribute('data-open', String(!open));
+        btn.setAttribute('aria-expanded', String(!open));
+      };
+    });
+  }
+
+  function renderStepsView() {
+    const container = document.getElementById('steps-list');
+    const nav = document.getElementById('step-nav');
+    container.innerHTML = '';
+    if (!currentSteps.length) {
+      container.innerHTML = '<p class="font-body-md text-on-surface-variant p-md">Esta derivada es directa; no requiere pasos intermedios.</p>';
+      nav.classList.remove('flex');
+      nav.classList.add('hidden');
+      return;
+    }
+    if (oneStepMode) {
+      container.innerHTML = buildStepCard(currentSteps[stepIndex], stepIndex);
+      nav.classList.remove('hidden');
+      nav.classList.add('flex');
+      document.getElementById('step-counter').textContent = `Paso ${stepIndex + 1} / ${currentSteps.length}`;
+      document.getElementById('step-prev').disabled = stepIndex === 0;
+      document.getElementById('step-next').disabled = stepIndex === currentSteps.length - 1;
+    } else {
+      const max = settings.maxVisibleSteps || currentSteps.length;
+      const shown = currentSteps.slice(0, max);
+      const hiddenCount = currentSteps.length - shown.length;
+      container.innerHTML = shown.map((s, i) => buildStepCard(s, i)).join('')
+        + (hiddenCount > 0 ? `<p class="font-label-md text-on-surface-variant uppercase tracking-widest p-md">+${hiddenCount} pasos más — aumenta el límite en Ajustes o activa "un paso a la vez" para verlos todos.</p>` : '');
+      nav.classList.remove('flex');
+      nav.classList.add('hidden');
+    }
+    wireStepAccordions();
+    renderMath(container);
+  }
+
+  function renderSteps(steps) {
+    currentSteps = steps;
+    stepIndex = 0;
+    renderStepsView();
+  }
+
+  document.getElementById('one-step-toggle').addEventListener('change', (e) => {
+    oneStepMode = e.target.checked;
+    stepIndex = 0;
+    renderStepsView();
+  });
+  document.getElementById('step-prev').addEventListener('click', () => {
+    if (stepIndex > 0) { stepIndex--; renderStepsView(); }
+  });
+  document.getElementById('step-next').addEventListener('click', () => {
+    if (stepIndex < currentSteps.length - 1) { stepIndex++; renderStepsView(); }
+  });
+
+  // ---------- Graph ----------
+  const graphState = { xMin: -10, xMax: 10, f: null, df: null, showF: true, showDf: true };
+  function niceStep(rough) {
+    const mag = Math.pow(10, Math.floor(Math.log10(Math.abs(rough) || 1)));
+    const norm = rough / mag;
+    const step = norm < 1.5 ? 1 : norm < 3 ? 2 : norm < 7 ? 5 : 10;
+    return step * mag;
+  }
+  function drawGraph() {
+    const canvas = document.getElementById('graph-plot');
+    const wrap = canvas.parentElement;
+    const dpr = window.devicePixelRatio || 1;
+    const cw = wrap.clientWidth, ch = wrap.clientHeight;
+    canvas.width = cw * dpr; canvas.height = ch * dpr;
+    canvas.style.width = cw + 'px'; canvas.style.height = ch + 'px';
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, cw, ch);
+
+    const { xMin, xMax } = graphState;
+    const N = settings.graphQuality === 'baja' ? 120 : settings.graphQuality === 'media' ? 300 : 700;
+    const step = (xMax - xMin) / N;
+    let yMin = Infinity, yMax = -Infinity;
+    const fPts = [], dPts = [];
+    for (let i = 0; i <= N; i++) {
+      const x = xMin + i * step;
+      let yf = NaN, yd = NaN;
+      try { yf = graphState.f ? graphState.f(x) : NaN; } catch (_) {}
+      try { yd = graphState.df ? graphState.df(x) : NaN; } catch (_) {}
+      fPts.push(Number.isFinite(yf) ? [x, yf] : [x, null]);
+      dPts.push(Number.isFinite(yd) ? [x, yd] : [x, null]);
+      if (Number.isFinite(yf)) { yMin = Math.min(yMin, yf); yMax = Math.max(yMax, yf); }
+      if (Number.isFinite(yd)) { yMin = Math.min(yMin, yd); yMax = Math.max(yMax, yd); }
+    }
+    if (!Number.isFinite(yMin) || !Number.isFinite(yMax)) { yMin = -5; yMax = 5; }
+    if (yMin === yMax) { yMin -= 1; yMax += 1; }
+    const pad = (yMax - yMin) * 0.15;
+    yMin -= pad; yMax += pad;
+    const maxSpan = 1e4;
+    if (yMax - yMin > maxSpan) { const c = (yMax + yMin) / 2; yMin = c - maxSpan / 2; yMax = c + maxSpan / 2; }
+
+    const toPx = x => (x - xMin) / (xMax - xMin) * cw;
+    const toPy = y => ch - (y - yMin) / (yMax - yMin) * ch;
+
+    const xTickStep = niceStep((xMax - xMin) / 8);
+    const yTickStep = niceStep((yMax - yMin) / 6);
+    if (settings.graphGridDefault) {
+      ctx.strokeStyle = 'rgba(255,255,255,0.06)'; ctx.lineWidth = 1;
+      for (let gx = Math.ceil(xMin / xTickStep) * xTickStep; gx <= xMax; gx += xTickStep) {
+        const px = toPx(gx); ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, ch); ctx.stroke();
+      }
+      for (let gy = Math.ceil(yMin / yTickStep) * yTickStep; gy <= yMax; gy += yTickStep) {
+        const py = toPy(gy); ctx.beginPath(); ctx.moveTo(0, py); ctx.lineTo(cw, py); ctx.stroke();
+      }
+    }
+
+    if (settings.graphAxesDefault) {
+      ctx.strokeStyle = 'rgba(229,226,225,0.35)'; ctx.lineWidth = 1;
+      if (xMin <= 0 && xMax >= 0) { const px = toPx(0); ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, ch); ctx.stroke(); }
+      if (yMin <= 0 && yMax >= 0) { const py = toPy(0); ctx.beginPath(); ctx.moveTo(0, py); ctx.lineTo(cw, py); ctx.stroke(); }
+    }
+
+    ctx.fillStyle = 'rgba(168,172,174,0.85)'; ctx.font = '10px "Geist Mono", monospace';
+    for (let gx = Math.ceil(xMin / xTickStep) * xTickStep; gx <= xMax; gx += xTickStep) {
+      if (Math.abs(gx) < xTickStep / 1000) continue;
+      ctx.fillText(fmtNum(Math.round(gx * 1000) / 1000), toPx(gx) + 3, ch - 4);
+    }
+    for (let gy = Math.ceil(yMin / yTickStep) * yTickStep; gy <= yMax; gy += yTickStep) {
+      if (Math.abs(gy) < yTickStep / 1000) continue;
+      ctx.fillText(fmtNum(Math.round(gy * 1000) / 1000), 3, toPy(gy) - 3);
+    }
+
+    function strokeCurve(pts, color, width) {
+      ctx.strokeStyle = color; ctx.lineWidth = width; ctx.beginPath();
+      let started = false;
+      for (const [x, y] of pts) {
+        if (y === null) { started = false; continue; }
+        const px = toPx(x), py = toPy(y);
+        if (py < -80 || py > ch + 80) { started = false; continue; }
+        if (!started) { ctx.moveTo(px, py); started = true; } else { ctx.lineTo(px, py); }
+      }
+      ctx.stroke();
+    }
+    const accent = settings.graphColorScheme === 'accent';
+    if (graphState.showF && graphState.f) strokeCurve(fPts, accent ? 'rgba(125,168,255,0.7)' : 'rgba(229,226,225,0.55)', 1.4);
+    if (graphState.showDf && graphState.df) strokeCurve(dPts, accent ? '#ff9f6e' : '#ffffff', 1.8);
+
+    if (!graphState.f) {
+      ctx.fillStyle = 'rgba(168,172,174,0.7)'; ctx.font = '13px Geist, sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('La gráfica está disponible para funciones explícitas de una variable', cw / 2, ch / 2);
+      ctx.textAlign = 'left';
+    }
+  }
+  function zoomGraph(factor) {
+    const mid = (graphState.xMin + graphState.xMax) / 2;
+    const half = (graphState.xMax - graphState.xMin) / 2 * factor;
+    graphState.xMin = mid - half; graphState.xMax = mid + half;
+    drawGraph();
+  }
+
+  // ---------- Mobile nav ----------
+  const menuToggle = document.getElementById('menu-toggle');
+  const mobileNav = document.getElementById('mobile-nav');
+  const menuIcon = document.getElementById('menu-icon');
+  menuToggle.addEventListener('click', () => {
+    const isOpen = mobileNav.classList.toggle('open');
+    menuToggle.setAttribute('aria-expanded', String(isOpen));
+    menuIcon.textContent = isOpen ? 'close' : 'menu';
+  });
+  mobileNav.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+    mobileNav.classList.remove('open');
+    menuToggle.setAttribute('aria-expanded', 'false');
+    menuIcon.textContent = 'menu';
+  }));
+
+  // ---------- Header: Historial + Ajustes (this page owns #historial; Graficas.html links back here) ----------
+  function goToHistorial() {
+    const el = document.getElementById('historial');
+    if (el) el.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+  }
+  document.getElementById('header-history-btn').addEventListener('click', goToHistorial);
+  document.getElementById('header-history-btn-mobile').addEventListener('click', () => {
+    mobileNav.classList.remove('open');
+    menuToggle.setAttribute('aria-expanded', 'false');
+    menuIcon.textContent = 'menu';
+    goToHistorial();
+  });
+  document.getElementById('header-settings-btn').addEventListener('click', () => openModal('ajustes'));
+  document.getElementById('header-settings-btn-mobile').addEventListener('click', () => {
+    mobileNav.classList.remove('open');
+    menuToggle.setAttribute('aria-expanded', 'false');
+    menuIcon.textContent = 'menu';
+    openModal('ajustes');
+  });
+
+  // ---------- Spotlight tracking on cards (delegated so dynamically-added cards work too) ----------
+  document.addEventListener('mousemove', (e) => {
+    const card = e.target.closest && e.target.closest('.card');
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    card.style.setProperty('--mx', `${e.clientX - rect.left}px`);
+    card.style.setProperty('--my', `${e.clientY - rect.top}px`);
+  });
+
+  // ---------- Reveal on scroll ----------
+  const revealEls = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window && !reduceMotion) {
+    document.body.classList.add('js-reveal-ready');
+    let revealCount = 0;
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const delay = Math.min(revealCount, 8) * 50;
+          revealCount++;
+          setTimeout(() => entry.target.classList.add('is-visible'), delay);
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    revealEls.forEach(el => io.observe(el));
+  }
+
+  // ---------- Expression input + live preview ----------
+  const expression = document.getElementById('expression');
+  const livePreviewText = document.getElementById('live-preview-text');
+  const livePreview = document.getElementById('live-preview');
+
+  function syncPreview() {
+    const value = expression.value.trim();
+    if (!value) { livePreviewText.textContent = 'Escribe una expresión…'; return; }
+    try {
+      const parsed = parse(insertImplicitMultiplication(tokenize(value)));
+      const latex = parsed.isEquation ? `${toLatex(parsed.left)} = ${toLatex(parsed.right)}` : toLatex(parsed.node);
+      livePreviewText.innerHTML = `$${latex}$`;
+      renderMath(livePreview);
+    } catch (_) {
+      // still typing (e.g. an unclosed parenthesis) — show the raw text rather than an error
+      livePreviewText.textContent = value;
+    }
+  }
+  expression.addEventListener('input', syncPreview);
+  syncPreview();
+
+  document.getElementById('clear-expression').addEventListener('click', () => {
+    expression.value = '';
+    expression.focus();
+    syncPreview();
+  });
+
+  // ---------- Keypad: insert at cursor ----------
+  document.querySelectorAll('.insert-symbol').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const insert = btn.dataset.insert;
+      const start = expression.selectionStart ?? expression.value.length;
+      const end = expression.selectionEnd ?? expression.value.length;
+      const before = expression.value.slice(0, start);
+      const after = expression.value.slice(end);
+      expression.value = before + insert + after;
+      const caret = insert.includes('()') ? start + insert.length - 1 : start + insert.length;
+      expression.focus();
+      expression.setSelectionRange(caret, caret);
+      syncPreview();
+    });
+  });
+
+  // ---------- Voice dictation ----------
+  // The mic button only ever talks to createWebSpeechEngine()/interpretSpokenMath() (voice.js).
+  // Swapping the recognition engine later (e.g. for Whisper) means changing that factory call only.
+  let pendingVoiceCandidates = [];
+  const voiceBtn = document.getElementById('voice-dictate-btn');
+  const voiceBtnIcon = document.getElementById('voice-btn-icon');
+  const voiceBtnPulse = document.getElementById('voice-btn-pulse');
+  const voiceStatusBar = document.getElementById('voice-status-bar');
+  const voiceStatusIcon = document.getElementById('voice-status-icon');
+  const voiceStatusLabel = document.getElementById('voice-status-label');
+  const voiceTranscript = document.getElementById('voice-transcript');
+  const voiceCancelBtn = document.getElementById('voice-cancel-btn');
+  let voiceEngine = null;
+  let voiceState = 'idle'; // idle | listening | processing | interpreting | ready | error
+
+  function setVoiceState(state, message) {
+    voiceState = state;
+    const icons = { idle: 'mic', listening: 'mic', processing: 'sync', interpreting: 'psychology', ready: 'check_circle', error: 'error_outline' };
+    const labels = {
+      idle: 'Esperando…', listening: 'Escuchando…', processing: 'Procesando…',
+      interpreting: 'Interpretando…', ready: 'Listo', error: 'No se entendió',
+    };
+    voiceStatusIcon.textContent = icons[state] || 'mic';
+    voiceStatusLabel.textContent = message || labels[state] || '';
+    voiceBtnPulse.classList.toggle('hidden', state !== 'listening');
+    voiceBtnIcon.textContent = state === 'listening' ? 'graphic_eq' : 'mic';
+    voiceStatusBar.classList.toggle('hidden', state === 'idle');
+    voiceStatusBar.classList.toggle('flex', state !== 'idle');
+    if (state === 'ready' || state === 'error') {
+      setTimeout(() => { if (voiceState === state) setVoiceState('idle'); }, 2600);
+    }
+  }
+
+  function wireVoiceAmbiguityControls() {
+    document.querySelectorAll('.voice-candidate-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const candidate = pendingVoiceCandidates[Number(btn.dataset.index)];
+        if (candidate) {
+          expression.value = candidate.text;
+          expression.focus();
+          syncPreview();
+        }
+        closeModal();
+      });
+    });
+  }
+
+  function handleVoiceFinalTranscript(text) {
+    setVoiceState('interpreting');
+    const result = interpretSpokenMath(text);
+    if (result.errorMessage) {
+      setVoiceState('error', result.errorMessage);
+      return;
+    }
+    if (result.candidates.length > 1) {
+      pendingVoiceCandidates = result.candidates;
+      setVoiceState('ready', 'Elige una interpretación');
+      openModal('voiceAmbiguity');
+      return;
+    }
+    expression.value = result.candidates[0].text;
+    expression.focus();
+    syncPreview();
+    setVoiceState('ready', result.warnings.length ? `Listo (algunas palabras no se reconocieron: ${result.warnings.join(', ')})` : 'Listo');
+  }
+
+  if (!isSpeechRecognitionSupported()) {
+    voiceBtn.disabled = true;
+    voiceBtn.classList.add('opacity-40', 'cursor-not-allowed');
+    voiceBtn.title = 'El dictado por voz no es compatible con este navegador';
+  } else {
+    voiceBtn.addEventListener('click', () => {
+      if (voiceState === 'listening') { voiceEngine && voiceEngine.stop(); return; }
+      voiceTranscript.innerHTML = '&nbsp;';
+      voiceEngine = createWebSpeechEngine({
+        lang: 'es-ES',
+        onStart: () => setVoiceState('listening'),
+        onPartial: (text) => { voiceTranscript.textContent = text; },
+        onFinal: (text) => { voiceTranscript.textContent = text; handleVoiceFinalTranscript(text); },
+        onEnd: () => { if (voiceState === 'listening') setVoiceState('idle'); },
+        onError: (err) => {
+          const friendly = err === 'no-speech' ? 'No se detectó voz. Inténtalo de nuevo.'
+            : err === 'not-allowed' || err === 'service-not-allowed' ? 'Se denegó el acceso al micrófono.'
+            : 'Ocurrió un problema con el reconocimiento de voz.';
+          setVoiceState('error', friendly);
+        },
+      });
+      if (voiceEngine) voiceEngine.start();
+    });
+    voiceCancelBtn.addEventListener('click', () => {
+      voiceEngine && voiceEngine.abort();
+      setVoiceState('idle');
+    });
+  }
+
+  // ---------- Example chips ----------
+  document.querySelectorAll('.example-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      expression.value = chip.dataset.example;
+      syncPreview();
+      document.getElementById('funcion').scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
+      expression.focus();
+      runCalculation();
+    });
+  });
+
+  // ---------- Zoom controls on preview ----------
+  const zoomResetBtn = document.getElementById('zoom-reset');
+  let zoom = 100;
+  function applyZoom() {
+    livePreview.style.fontSize = `${28 * (zoom / 100)}px`;
+    zoomResetBtn.textContent = `${zoom}%`;
+  }
+  document.getElementById('zoom-in').addEventListener('click', () => { zoom = Math.min(200, zoom + 20); applyZoom(); });
+  document.getElementById('zoom-out').addEventListener('click', () => { zoom = Math.max(40, zoom - 20); applyZoom(); });
+  zoomResetBtn.addEventListener('click', () => { zoom = 100; applyZoom(); });
+
+  // ---------- Copy / Share ----------
+  document.getElementById('copy-expression').addEventListener('click', async (e) => {
+    try {
+      await navigator.clipboard.writeText(expression.value);
+      const label = e.currentTarget.querySelector('span:last-child') || e.currentTarget;
+      const original = e.currentTarget.innerHTML;
+      e.currentTarget.innerHTML = '<span class="material-symbols-outlined text-[17px]">check</span>Copiado';
+      setTimeout(() => { e.currentTarget.innerHTML = original; }, 1600);
+    } catch (_) { /* clipboard unavailable */ }
+  });
+  document.getElementById('share-expression').addEventListener('click', async () => {
+    const text = `Deriva ${expression.value} con Derivante`;
+    if (navigator.share) {
+      try { await navigator.share({ text }); } catch (_) {}
+    } else {
+      try { await navigator.clipboard.writeText(text); } catch (_) {}
+    }
+  });
+
+
+  // ---------- Graph controls: zoom buttons, pan, wheel, toggles, resize ----------
+  document.getElementById('graph-zoom-in').addEventListener('click', () => zoomGraph(0.7));
+  document.getElementById('graph-zoom-out').addEventListener('click', () => zoomGraph(1 / 0.7));
+  document.getElementById('graph-reset').addEventListener('click', () => { graphState.xMin = -10; graphState.xMax = 10; drawGraph(); });
+  document.querySelectorAll('.graph-toggle').forEach(box => {
+    box.addEventListener('change', () => {
+      if (box.dataset.target === 'fx') graphState.showF = box.checked; else graphState.showDf = box.checked;
+      drawGraph();
+    });
+  });
+  (() => {
+    const canvas = document.getElementById('graph-plot');
+    let dragging = false, lastX = 0;
+    canvas.addEventListener('pointerdown', e => { dragging = true; lastX = e.clientX; canvas.setPointerCapture(e.pointerId); });
+    canvas.addEventListener('pointermove', e => {
+      if (!dragging) return;
+      const dx = e.clientX - lastX; lastX = e.clientX;
+      const span = graphState.xMax - graphState.xMin;
+      const shift = -(dx / canvas.clientWidth) * span;
+      graphState.xMin += shift; graphState.xMax += shift;
+      drawGraph();
+    });
+    canvas.addEventListener('pointerup', () => { dragging = false; });
+    canvas.addEventListener('pointerleave', () => { dragging = false; });
+    canvas.addEventListener('wheel', e => { e.preventDefault(); zoomGraph(e.deltaY > 0 ? 1.1 : 0.9); }, { passive: false });
+  })();
+  window.addEventListener('resize', () => drawGraph());
+
+  // ---------- Reference modals (Funciones / Variables / Constantes / Atajos) ----------
+  function ruleCard(title, desc, mathLatexDisplay) {
+    return `<div class="rule-card space-y-2">
+      <h3 class="font-sans text-body-lg font-semibold text-on-surface">${title}</h3>
+      <p class="font-body-md text-on-surface-variant">${desc}</p>
+      <div class="overflow-x-auto">$$${mathLatexDisplay}$$</div>
+    </div>`;
+  }
+  function ruleTable(title, desc, rows) {
+    const rowsHTML = rows.map(([f, d]) => `
+      <div class="flex items-center justify-between gap-md py-1.5 border-b border-outline last:border-0">
+        <span>$${f}$</span>
+        <span class="material-symbols-outlined text-[16px] text-on-surface-variant">arrow_forward</span>
+        <span>$${d}$</span>
+      </div>`).join('');
+    return `<div class="rule-card space-y-2">
+      <h3 class="font-sans text-body-lg font-semibold text-on-surface">${title}</h3>
+      <p class="font-body-md text-on-surface-variant">${desc}</p>
+      <div>${rowsHTML}</div>
+    </div>`;
+  }
+
+  // ---------- Settings (sessionStorage; ready to swap for localStorage without changing this structure) ----------
+  const SETTINGS_KEY = 'derivante.settings.v1';
+  const DEFAULT_SETTINGS = {
+    theme: 'dark',
+    showLatex: true,
+    detailLevel: 'normal',
+    autoShowSteps: false,
+    oneStepDefault: false,
+    maxVisibleSteps: 12,
+    graphGridDefault: true,
+    graphAxesDefault: true,
+    graphAnimations: true,
+    graphQuality: 'alta',
+    graphColorScheme: 'mono',
+    autoScrollResult: true,
+    confirmClearHistory: true,
+    rememberSettings: true,
+    uiAnimations: true,
+    reduceAnimations: false,
+    simplifiedRendering: false,
+    lowResourceMode: false,
+  };
+  function loadSettings() {
+    try {
+      const raw = sessionStorage.getItem(SETTINGS_KEY);
+      return raw ? { ...DEFAULT_SETTINGS, ...JSON.parse(raw) } : { ...DEFAULT_SETTINGS };
+    } catch (_) { return { ...DEFAULT_SETTINGS }; }
+  }
+  function saveSettings(s) {
+    try {
+      if (s.rememberSettings) sessionStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+      else sessionStorage.removeItem(SETTINGS_KEY);
+    } catch (_) { /* storage unavailable — settings just won't persist */ }
+  }
+  let settings = loadSettings();
+  let systemThemeQuery = null;
+
+  function resolveTheme() {
+    if (settings.theme === 'system') return (systemThemeQuery && systemThemeQuery.matches) ? 'dark' : 'light';
+    return settings.theme;
+  }
+  function applySettings() {
+    document.documentElement.classList.toggle('theme-light', resolveTheme() === 'light');
+    const noAnim = !settings.uiAnimations || settings.reduceAnimations || settings.lowResourceMode;
+    document.documentElement.classList.toggle('perf-no-anim', noAnim);
+    document.documentElement.classList.toggle('no-spotlight', settings.simplifiedRendering || settings.lowResourceMode);
+    const splineWrap = document.getElementById('spline-viewer');
+    if (splineWrap) splineWrap.style.display = settings.lowResourceMode ? 'none' : '';
+    if (typeof drawGraph === 'function' && typeof graphState !== 'undefined') drawGraph();
+  }
+  function initSettings() {
+    if (window.matchMedia) {
+      systemThemeQuery = window.matchMedia('(prefers-color-scheme: light)');
+      systemThemeQuery.addEventListener('change', () => { if (settings.theme === 'system') applySettings(); });
+    }
+    applySettings();
+  }
+
+  function settingsToggleRow(id, label, checked) {
+    return `<label class="flex items-center justify-between gap-md py-2 cursor-pointer select-none">
+      <span class="font-body-md text-on-surface">${label}</span>
+      <span class="relative inline-block w-10 h-6 shrink-0">
+        <input type="checkbox" id="${id}" class="settings-toggle peer sr-only" ${checked ? 'checked' : ''}>
+        <span class="absolute inset-0 rounded-full bg-surface-high peer-checked:bg-primary transition-colors"></span>
+        <span class="absolute left-1 top-1 w-4 h-4 rounded-full bg-on-surface-variant peer-checked:bg-on-primary peer-checked:translate-x-4 transition-transform"></span>
+      </span>
+    </label>`;
+  }
+  function settingsSelectRow(id, label, options, selected) {
+    const opts = options.map(([v, l]) => `<option value="${v}" ${v === selected ? 'selected' : ''}>${l}</option>`).join('');
+    return `<label class="flex items-center justify-between gap-md py-2">
+      <span class="font-body-md text-on-surface">${label}</span>
+      <select id="${id}" class="settings-select key rounded-md h-9 px-sm font-body-md bg-surface-low">${opts}</select>
+    </label>`;
+  }
+  function settingsNumberRow(id, label, value, min, max) {
+    return `<label class="flex items-center justify-between gap-md py-2">
+      <span class="font-body-md text-on-surface">${label}</span>
+      <input type="number" id="${id}" min="${min}" max="${max}" value="${value}" class="settings-number key rounded-md h-9 px-sm w-20 text-center font-body-md bg-surface-low">
+    </label>`;
+  }
+  function settingsSection(title, rowsHTML) {
+    return `<div class="rule-card space-y-1">
+      <h3 class="font-sans text-body-lg font-semibold text-on-surface mb-1">${title}</h3>
+      ${rowsHTML}
+    </div>`;
+  }
+  function wireSettingsControls() {
+    modalBody.querySelectorAll('.settings-toggle').forEach(el => {
+      el.addEventListener('change', () => {
+        settings[el.id.replace('setting-', '')] = el.checked;
+        saveSettings(settings);
+        applySettings();
+      });
+    });
+    modalBody.querySelectorAll('.settings-select').forEach(el => {
+      el.addEventListener('change', () => {
+        settings[el.id.replace('setting-', '')] = el.value;
+        saveSettings(settings);
+        applySettings();
+      });
+    });
+    modalBody.querySelectorAll('.settings-number').forEach(el => {
+      el.addEventListener('change', () => {
+        const min = parseInt(el.min, 10), max = parseInt(el.max, 10);
+        const v = Math.max(min, Math.min(max, parseInt(el.value, 10) || min));
+        el.value = v;
+        settings[el.id.replace('setting-', '')] = v;
+        saveSettings(settings);
+        applySettings();
+      });
+    });
+    const resetBtn = document.getElementById('settings-reset-btn');
+    if (resetBtn) resetBtn.addEventListener('click', () => {
+      settings = { ...DEFAULT_SETTINGS };
+      saveSettings(settings);
+      applySettings();
+      modalBody.innerHTML = MODAL_CONTENT.ajustes.body();
+      renderMath(modalBody);
+      wireSettingsControls();
+    });
+  }
+
+  const MODAL_CONTENT = {
+    ajustes: {
+      title: 'Ajustes',
+      body: () => [
+        settingsSection('Apariencia', settingsSelectRow('setting-theme', 'Tema', [['dark', 'Oscuro'], ['light', 'Claro'], ['system', 'Seguir el sistema']], settings.theme)),
+        settingsSection('Matemáticas', [
+          settingsToggleRow('setting-showLatex', 'Mostrar resultados en LaTeX', settings.showLatex),
+          settingsSelectRow('setting-detailLevel', 'Nivel de detalle del procedimiento', [['basico', 'Básico'], ['normal', 'Normal'], ['detallado', 'Detallado']], settings.detailLevel),
+          settingsToggleRow('setting-autoShowSteps', 'Mostrar automáticamente el paso a paso', settings.autoShowSteps),
+          settingsToggleRow('setting-oneStepDefault', 'Modo "un paso a la vez" por defecto', settings.oneStepDefault),
+          settingsNumberRow('setting-maxVisibleSteps', 'Número máximo de pasos visibles', settings.maxVisibleSteps, 3, 30),
+        ].join('')),
+        settingsSection('Gráficas', [
+          settingsToggleRow('setting-graphGridDefault', 'Mostrar cuadrícula por defecto', settings.graphGridDefault),
+          settingsToggleRow('setting-graphAxesDefault', 'Mostrar ejes por defecto', settings.graphAxesDefault),
+          settingsToggleRow('setting-graphAnimations', 'Activar animaciones', settings.graphAnimations),
+          settingsSelectRow('setting-graphQuality', 'Calidad de renderizado', [['alta', 'Alta'], ['media', 'Media'], ['baja', 'Baja']], settings.graphQuality),
+          settingsSelectRow('setting-graphColorScheme', 'Colores predeterminados', [['mono', 'Monocromo'], ['accent', "Acento (f' en color)"]], settings.graphColorScheme),
+        ].join('')),
+        settingsSection('Experiencia de usuario', [
+          settingsToggleRow('setting-autoScrollResult', 'Desplazamiento automático al resultado', settings.autoScrollResult),
+          settingsToggleRow('setting-confirmClearHistory', 'Confirmación antes de borrar el historial', settings.confirmClearHistory),
+          settingsToggleRow('setting-rememberSettings', 'Recordar configuraciones durante la sesión', settings.rememberSettings),
+          settingsToggleRow('setting-uiAnimations', 'Animaciones de la interfaz', settings.uiAnimations),
+        ].join('')),
+        settingsSection('Rendimiento', [
+          settingsToggleRow('setting-reduceAnimations', 'Reducir animaciones', settings.reduceAnimations),
+          settingsToggleRow('setting-simplifiedRendering', 'Renderizado simplificado', settings.simplifiedRendering),
+          settingsToggleRow('setting-lowResourceMode', 'Optimización para equipos de bajos recursos', settings.lowResourceMode),
+        ].join('')),
+        '<div class="flex justify-end"><button type="button" id="settings-reset-btn" class="btn-ghost font-label-md uppercase tracking-widest px-2 py-1 rounded">Restablecer valores predeterminados</button></div>',
+      ].join(''),
+    },
+    funciones: {
+      title: 'Funciones — guía rápida de reglas',
+      body: () => [
+        ruleCard('Derivada de una constante', 'La derivada de cualquier valor constante es siempre cero, sin importar qué tan grande sea.', "\\frac{d}{dx}\\left[c\\right] = 0"),
+        ruleCard('Derivada de x', 'La derivada de x respecto de sí misma es 1.', "\\frac{d}{dx}\\left[x\\right] = 1"),
+        ruleCard('Regla de la potencia', 'Se usa cuando la función es x elevado a un exponente constante n.', "\\frac{d}{dx}\\left[x^n\\right] = n\\,x^{n-1}"),
+        ruleCard('Regla de la suma y resta', 'La derivada de una suma o resta de funciones es la suma o resta de sus derivadas, término a término.', "\\frac{d}{dx}\\left[f(x) \\pm g(x)\\right] = f'(x) \\pm g'(x)"),
+        ruleCard('Regla del producto', 'Se aplica cuando dos funciones que dependen de x se multiplican entre sí.', "\\frac{d}{dx}\\left[f(x)\\,g(x)\\right] = f'(x)\\,g(x) + f(x)\\,g'(x)"),
+        ruleCard('Regla del cociente', 'Se aplica cuando una función se divide entre otra.', "\\frac{d}{dx}\\left[\\frac{f(x)}{g(x)}\\right] = \\frac{f'(x)\\,g(x) - f(x)\\,g'(x)}{g(x)^2}"),
+        ruleCard('Regla de la cadena', 'Se usa cuando hay una función compuesta dentro de otra: primero se deriva la función externa y se multiplica por la derivada de la interna.', "\\frac{d}{dx}\\left[f(g(x))\\right] = f'(g(x)) \\cdot g'(x)"),
+        ruleCard('Funciones exponenciales', 'La exponencial con base e es la única función que es su propia derivada. Con otra base constante a, aparece un factor ln(a).', "\\frac{d}{dx}\\left[e^x\\right] = e^x \\qquad \\frac{d}{dx}\\left[a^x\\right] = a^x\\ln(a)"),
+        ruleCard('Funciones logarítmicas', 'El logaritmo natural (base e) y el logaritmo en base 10 usan la misma idea, con una constante de ajuste.', "\\frac{d}{dx}\\left[\\ln(x)\\right] = \\frac{1}{x} \\qquad \\frac{d}{dx}\\left[\\log(x)\\right] = \\frac{1}{x\\ln(10)}"),
+        ruleTable('Funciones trigonométricas', 'Cada función trigonométrica tiene una derivada fija que conviene memorizar.', [
+          ['\\sin(x)', '\\cos(x)'], ['\\cos(x)', '-\\sin(x)'], ['\\tan(x)', '\\sec^2(x)'],
+          ['\\cot(x)', '-\\csc^2(x)'], ['\\sec(x)', '\\sec(x)\\tan(x)'], ['\\csc(x)', '-\\csc(x)\\cot(x)'],
+        ]),
+        ruleTable('Funciones trigonométricas inversas', 'Aparecen al derivar arcoseno, arcocoseno y arcotangente.', [
+          ['\\arcsin(x)', '\\dfrac{1}{\\sqrt{1-x^2}}'], ['\\arccos(x)', '-\\dfrac{1}{\\sqrt{1-x^2}}'], ['\\arctan(x)', '\\dfrac{1}{1+x^2}'],
+        ]),
+        ruleTable('Funciones hiperbólicas', 'El análogo hiperbólico de las funciones trigonométricas.', [
+          ['\\sinh(x)', '\\cosh(x)'], ['\\cosh(x)', '\\sinh(x)'], ['\\tanh(x)', '\\dfrac{1}{\\cosh^2(x)}'],
+        ]),
+      ].join(''),
+    },
+    variables: {
+      title: 'Variables',
+      body: () => [
+        ruleCard('No estás limitado a x', 'La calculadora acepta cualquier letra como variable: x, y, z, t, o casi cualquier identificador que escribas. El selector "Variable" en la sección "Función a derivar" indica respecto a cuál letra se calcula la derivada.', "\\frac{d}{dt}\\left[t^2 + 3t\\right] = 2t + 3"),
+        ruleCard('Cómo cambiar la variable principal', 'Escribe tu función usando la letra que prefieras y elige esa misma letra en el menú desplegable "Variable" antes de presionar Calcular.', "\\frac{d}{dy}\\left[y^3 - 5\\right] = 3y^2"),
+        ruleCard('Expresiones con varias variables', 'Si tu función mezcla más de una letra, la calculadora deriva respecto a la variable seleccionada y trata a las demás letras como constantes — igual que en una derivada parcial.', "\\frac{\\partial}{\\partial x}\\left[xy\\right] = y \\quad (\\text{con } y \\text{ fija})"),
+        ruleCard('Constantes y variables al mismo tiempo', 'Los números siempre son constantes. Cualquier letra que no sea la variable seleccionada también se trata como constante, así que se conserva sin cambios durante la derivación.', "\\frac{d}{dx}\\left[3x + t\\right] = 3 \\quad (\\text{con } t \\text{ constante})"),
+        ruleCard('Derivación implícita con dos variables', 'Cuando dos variables están relacionadas por una ecuación (como x y y en un círculo), activa "Derivación implícita" para obtener y\' en términos de x y y.', "x^2 + y^2 = 25 \\;\\Rightarrow\\; y' = -\\frac{x}{y}"),
+      ].join(''),
+    },
+    constantes: {
+      title: 'Constantes',
+      body: () => [
+        ruleCard('Qué se considera una constante', 'Cualquier número, o cualquier letra que no sea la variable seleccionada, se trata como un valor fijo que no cambia durante la derivación.', "\\frac{d}{dx}\\left[7\\right] = 0"),
+        ruleCard('Constantes frente a variables', 'La variable es la letra respecto a la cual derivas (la que eliges en el menú "Variable"). Todo lo demás — números y otras letras — se comporta como constante.', "\\frac{d}{dx}\\left[k\\,x^2\\right] = 2kx \\quad (k \\text{ constante})"),
+        ruleCard('Constantes literales: a, b, c, k…', 'Puedes usar letras como constantes arbitrarias siempre que no coincidan con la variable seleccionada. Se derivan igual que un número: se conservan tal cual.', "\\frac{d}{dx}\\left[a\\,x + b\\right] = a"),
+        ruleCard('Constantes matemáticas: π y e', 'Escribe "pi" para π (≈3.14159) y "e" para el número de Euler (≈2.71828). La calculadora las reconoce como constantes especiales, no como variables.', "\\frac{d}{dx}\\left[\\pi x^2\\right] = 2\\pi x \\qquad \\frac{d}{dx}\\left[e^x\\right] = e^x"),
+        ruleCard('Cómo afectan la derivación', 'Un factor constante que multiplica a toda la función se conserva; solo se deriva la parte que depende de la variable (regla del factor constante).', "\\frac{d}{dx}\\left[5x^3\\right] = 5 \\cdot \\frac{d}{dx}\\left[x^3\\right] = 15x^2"),
+      ].join(''),
+    },
+    atajos: {
+      title: 'Atajos de escritura',
+      body: () => `
+        <p class="font-body-md text-on-surface-variant">Esta calculadora se escribe con texto plano: la sintaxis es exactamente la misma en Windows, macOS, Linux o cualquier móvil — no depende de atajos de teclado del sistema operativo.</p>
+        <div class="rule-card space-y-2">
+          <h3 class="font-sans text-body-lg font-semibold text-on-surface">Sintaxis aceptada por la calculadora</h3>
+          ${ruleTableRows([
+            ['Potencias', 'x^2', 'x^{2}'],
+            ['Raíz cuadrada', 'sqrt(x)', '\\sqrt{x}'],
+            ['Fracciones', '1/x', '\\dfrac{1}{x}'],
+            ['Pi', 'pi', '\\pi'],
+            ['Número de Euler', 'e', 'e'],
+            ['Trigonométricas', 'sin(x), cos(x), tan(x)', '\\sin(x),\\ \\cos(x),\\ \\tan(x)'],
+            ['Trig. inversas', 'asin(x), acos(x), atan(x)', '\\arcsin(x),\\ \\arccos(x),\\ \\arctan(x)'],
+            ['Hiperbólicas', 'sinh(x), cosh(x), tanh(x)', '\\sinh(x),\\ \\cosh(x),\\ \\tanh(x)'],
+            ['Logaritmo natural', 'ln(x)', '\\ln(x)'],
+            ['Logaritmo base 10', 'log(x)', '\\log(x)'],
+            ['Valor absoluto', 'abs(x)', '\\left|x\\right|'],
+            ['Multiplicación', '2*x  o simplemente 2x', '2x'],
+            ['Paréntesis', '(x + 1)', '(x+1)'],
+          ])}
+        </div>
+        <div class="rule-card space-y-2">
+          <h3 class="font-sans text-body-lg font-semibold text-on-surface">Atajos propios de esta calculadora</h3>
+          <p class="font-body-md text-on-surface-variant">La multiplicación implícita se detecta automáticamente: <span class="font-mono">2x</span>, <span class="font-mono">2(x+1)</span> o <span class="font-mono">xy</span> se interpretan como si hubieras escrito el símbolo de multiplicación. En funciones simples también puedes omitir el paréntesis: <span class="font-mono">sinx</span> se interpreta como <span class="font-mono">sin(x)</span>.</p>
+          <p class="font-body-md text-on-surface-variant">Presiona <span class="font-mono">Enter</span> dentro del campo de función para calcular sin usar el botón.</p>
+        </div>
+        <div class="rule-card space-y-2">
+          <h3 class="font-sans text-body-lg font-semibold text-on-surface">Escribir símbolos con el teclado del sistema (opcional)</h3>
+          <p class="font-body-md text-on-surface-variant">No es necesario para usar la calculadora, pero si prefieres escribir el símbolo real en vez de la palabra:</p>
+          <div class="flex items-center justify-between gap-md py-1.5 border-b border-outline">
+            <span class="font-body-md font-semibold">Windows</span>
+            <span class="font-body-md text-on-surface-variant text-right">Tecla <span class="font-mono">Win</span> + <span class="font-mono">.</span> abre el panel de emojis; su pestaña Ω incluye símbolos matemáticos.</span>
+          </div>
+          <div class="flex items-center justify-between gap-md py-1.5">
+            <span class="font-body-md font-semibold">macOS</span>
+            <span class="font-body-md text-on-surface-variant text-right"><span class="font-mono">Option + P</span> escribe π directamente; <span class="font-mono">Control + Cmd + Espacio</span> abre el visor de caracteres para buscar cualquier símbolo.</span>
+          </div>
+        </div>
+        <div class="rule-card space-y-2">
+          <h3 class="font-sans text-body-lg font-semibold text-on-surface">Sobre el infinito</h3>
+          <p class="font-body-md text-on-surface-variant">Esta calculadora no necesita que escribas el símbolo de infinito: no se usa para calcular derivadas. Cuando el desarrollo por definición de límites aplica, los límites se muestran automáticamente dentro del paso a paso.</p>
+        </div>`,
+    },
+    voiceAmbiguity: {
+      title: 'Confirma la interpretación',
+      body: () => `
+        <p class="font-body-md text-on-surface-variant">Lo que dijiste admite más de una lectura matemática válida. Elige la que corresponde a lo que querías escribir:</p>
+        <div class="grid gap-md">
+          ${pendingVoiceCandidates.map((c, i) => `
+            <button type="button" class="voice-candidate-btn card p-md space-y-sm text-left w-full" data-index="${i}">
+              <div class="font-label-md text-on-surface-variant uppercase tracking-widest">${c.label}</div>
+              <div class="overflow-x-auto">$$${c.latex}$$</div>
+              <div class="font-mono text-body-md text-on-surface-dim">${c.text}</div>
+            </button>`).join('')}
+        </div>`,
+    },
+  };
+  function ruleTableRows(rows) {
+    return `<div>` + rows.map(([label, syntax, latex]) => `
+      <div class="flex items-center justify-between gap-md py-1.5 border-b border-outline last:border-0">
+        <span class="font-body-md text-on-surface-variant">${label}</span>
+        <span class="font-mono text-body-md text-on-surface-dim">${syntax}</span>
+        <span>$${latex}$</span>
+      </div>`).join('') + `</div>`;
+  }
+
+  const modalOverlay = document.getElementById('modal-overlay');
+  const modalTitle = document.getElementById('modal-title');
+  const modalBody = document.getElementById('modal-body');
+  let lastFocusedBeforeModal = null;
+
+  function openModal(key) {
+    const data = MODAL_CONTENT[key];
+    if (!data) return;
+    lastFocusedBeforeModal = document.activeElement;
+    modalTitle.textContent = data.title;
+    modalBody.innerHTML = data.body();
+    renderMath(modalBody);
+    if (key === 'ajustes') wireSettingsControls();
+    if (key === 'voiceAmbiguity') wireVoiceAmbiguityControls();
+    modalOverlay.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    document.getElementById('modal-close').focus();
+  }
+  function closeModal() {
+    modalOverlay.classList.remove('show');
+    document.body.style.overflow = '';
+    if (lastFocusedBeforeModal) lastFocusedBeforeModal.focus();
+  }
+  document.querySelectorAll('.sidebar-modal-btn').forEach(btn => {
+    btn.addEventListener('click', () => openModal(btn.dataset.modal));
+  });
+  document.getElementById('modal-close').addEventListener('click', closeModal);
+  document.querySelector('[data-modal-backdrop]').addEventListener('click', closeModal);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && modalOverlay.classList.contains('show')) closeModal();
+  });
+
+  // ---------- Examples accordion ----------
+  const EXAMPLES = [
+    { latex: 'x^3', desc: 'Potencias — la regla básica para derivar cualquier potencia de x.', raw: 'x^3' },
+    { latex: 'x^2 + 3x - 5', desc: 'Polinomios — suma de varios términos aplicando la regla de la potencia a cada uno.', raw: 'x^2 + 3x - 5' },
+    { latex: '\\sqrt{x^2+1}', desc: 'Radicales — una raíz cuadrada que requiere la regla de la cadena.', raw: 'sqrt(x^2+1)' },
+    { latex: '\\frac{1}{x^2+1}', desc: 'Fracciones — un cociente con numerador constante.', raw: '1/(x^2+1)' },
+    { latex: '\\tan(2x)', desc: 'Trigonométricas — función trigonométrica compuesta con la regla de la cadena.', raw: 'tan(2x)' },
+    { latex: '\\sin(x)\\cos(x)', desc: 'Regla del producto — dos funciones trigonométricas multiplicadas entre sí.', raw: 'sin(x)*cos(x)' },
+    { latex: '\\frac{\\ln(x)}{x}', desc: 'Regla del cociente — un logaritmo natural dividido entre x.', raw: 'ln(x)/x' },
+    { latex: '2^x', desc: 'Exponenciales — una base constante distinta de e.', raw: '2^x' },
+    { latex: 'x^x', desc: 'Derivación logarítmica — la base y el exponente dependen ambos de x.', raw: 'x^x' },
+    { latex: 'x^2 + y^2 = 25', desc: 'Derivación implícita — una ecuación con dos variables relacionadas.', raw: 'x^2+y^2=25', implicit: true },
+  ];
+  function renderExamplesPanel() {
+    const panel = document.getElementById('examples-panel');
+    panel.innerHTML = EXAMPLES.map((ex, i) => `
+      <div class="p-md rounded-lg bg-surface-low border border-outline space-y-1">
+        <div class="flex items-center gap-sm">
+          <span class="w-5 h-5 shrink-0 rounded-full bg-surface-high text-on-surface-variant flex items-center justify-center font-bold text-[10px]">${i + 1}</span>
+          <div class="overflow-x-auto">$$${ex.latex}$$</div>
+        </div>
+        <p class="font-label-md text-on-surface-variant pl-7">${ex.desc}</p>
+        <button type="button" class="use-example-btn btn btn-secondary rounded-lg px-sm py-1 font-label-md font-bold ml-7" data-index="${i}">Usar este ejemplo</button>
+      </div>`).join('');
+    renderMath(panel);
+    panel.querySelectorAll('.use-example-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const ex = EXAMPLES[parseInt(btn.dataset.index, 10)];
+        expression.value = ex.raw;
+        document.getElementById('implicit-checkbox').checked = Boolean(ex.implicit);
+        syncPreview();
+        document.getElementById('funcion').scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
+        expression.focus();
+        runCalculation();
+      });
+    });
+  }
+  renderExamplesPanel();
+
+  const examplesToggle = document.getElementById('examples-toggle');
+  const examplesPanel = document.getElementById('examples-panel');
+  const examplesChevron = document.getElementById('examples-chevron');
+  function setExamplesOpen(open) {
+    examplesPanel.classList.toggle('hidden', !open);
+    examplesToggle.setAttribute('aria-expanded', String(open));
+    examplesChevron.style.transform = open ? 'rotate(180deg)' : 'rotate(0deg)';
+  }
+  examplesToggle.addEventListener('click', () => {
+    setExamplesOpen(examplesPanel.classList.contains('hidden'));
+  });
+  document.getElementById('hero-ver-ejemplos').addEventListener('click', () => {
+    setExamplesOpen(true);
+    document.getElementById('examples-section').scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
+  });
+
+  // ---------- Session history (sessionStorage only — cleared when the tab closes) ----------
+  const HISTORY_KEY = 'derivante.history.v1';
+  const HISTORY_LIMIT = 30;
+
+  function loadHistory() {
+    try {
+      const raw = sessionStorage.getItem(HISTORY_KEY);
+      const list = raw ? JSON.parse(raw) : [];
+      return Array.isArray(list) ? list : [];
+    } catch (_) {
+      return [];
+    }
+  }
+  function saveHistory(list) {
+    try { sessionStorage.setItem(HISTORY_KEY, JSON.stringify(list)); } catch (_) { /* storage unavailable or full — history is a convenience, fail silently */ }
+  }
+  function configsEqual(a, b) {
+    return a.xVar === b.xVar && a.order === b.order && a.implicit === b.implicit && a.oneStepMode === b.oneStepMode;
+  }
+  function formatHistoryTimestamp(ts) {
+    return new Date(ts).toLocaleString('es', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+  }
+
+  function addHistoryEntry(entry) {
+    const list = loadHistory();
+    if (list.length && list[0].raw === entry.raw && configsEqual(list[0].config, entry.config)) {
+      list[0].timestamp = entry.timestamp;
+    } else {
+      list.unshift(entry);
+      if (list.length > HISTORY_LIMIT) list.length = HISTORY_LIMIT;
+    }
+    saveHistory(list);
+    renderHistory(list);
+  }
+  function deleteHistoryEntry(id) {
+    const list = loadHistory().filter(e => e.id !== id);
+    saveHistory(list);
+    renderHistory(list);
+  }
+  function clearHistory() {
+    saveHistory([]);
+    renderHistory([]);
+  }
+
+  function renderHistory(list) {
+    const container = document.getElementById('history-list');
+    if (!list.length) {
+      container.innerHTML = '<p class="font-body-md text-on-surface-variant p-md">Aún no hay cálculos en esta sesión.</p>';
+      return;
+    }
+    container.innerHTML = list.map(e => `
+      <div class="history-item w-full flex items-center justify-between gap-md p-md rounded-lg bg-surface-low border border-outline hover:border-outline-strong transition-colors cursor-pointer" data-id="${e.id}" role="button" tabindex="0">
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-sm overflow-x-auto">
+            <span>$${e.originalLatex}$</span>
+            <span class="material-symbols-outlined text-[16px] text-on-surface-variant shrink-0">arrow_forward</span>
+            <span class="font-medium">$${e.derivativeLatex}$</span>
+          </div>
+          <div class="font-label-md text-on-surface-variant mt-1">${formatHistoryTimestamp(e.timestamp)}</div>
+        </div>
+        <button type="button" class="history-delete btn-ghost h-8 w-8 shrink-0 inline-flex items-center justify-center rounded-full" data-id="${e.id}" title="Eliminar" aria-label="Eliminar cálculo">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>`).join('');
+    renderMath(container);
+    container.querySelectorAll('.history-item').forEach(item => {
+      const openEntry = () => {
+        const entry = loadHistory().find(x => x.id === item.dataset.id);
+        if (entry) restoreFromHistory(entry);
+      };
+      item.addEventListener('click', openEntry);
+      item.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openEntry(); } });
+    });
+    container.querySelectorAll('.history-delete').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        deleteHistoryEntry(btn.dataset.id);
+      });
+    });
+  }
+
+  function restoreFromHistory(entry) {
+    expression.value = entry.raw;
+    document.getElementById('variable-select').value = entry.config.xVar;
+    document.getElementById('order-select').value = String(entry.config.order);
+    document.getElementById('implicit-checkbox').checked = entry.config.implicit;
+    document.getElementById('one-step-toggle').checked = entry.config.oneStepMode;
+    oneStepMode = entry.config.oneStepMode;
+    syncPreview();
+
+    document.getElementById('error-banner').classList.remove('show');
+    const resultPanel = document.getElementById('result-panel');
+    document.getElementById('res-original').innerHTML = `$${entry.originalLatex}$`;
+    document.getElementById('res-derivative').innerHTML = `$${entry.derivativeLatex}$`;
+    document.getElementById('res-domain').innerHTML = entry.domainHTML;
+    document.getElementById('res-variable').textContent = entry.variableText;
+    document.getElementById('stat-order').textContent = entry.statOrder;
+    document.getElementById('stat-time').textContent = entry.statTime;
+    document.getElementById('stat-complexity').textContent = entry.statComplexity;
+    renderMath(resultPanel);
+
+    renderSteps(entry.steps);
+    renderTokens(entry.tokens);
+    renderASTSVG(entry.astNode);
+
+    if (!entry.isImplicit && entry.fnNode && entry.derivativeNode) {
+      try {
+        graphState.f = compileFn(entry.fnNode, entry.config.xVar);
+        graphState.df = compileFn(entry.derivativeNode, entry.config.xVar);
+      } catch (_) { graphState.f = null; graphState.df = null; }
+    } else {
+      graphState.f = null; graphState.df = null;
+    }
+    graphState.xMin = -10; graphState.xMax = 10;
+    drawGraph();
+
+    resultPanel.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+  }
+
+  document.getElementById('clear-history-btn').addEventListener('click', () => {
+    if (!settings.confirmClearHistory || confirm('¿Borrar todo el historial de esta sesión? Esta acción no se puede deshacer.')) clearHistory();
+  });
+  renderHistory(loadHistory());
+
+  // ---------- Calculate ----------
+  function runCalculation(scrollToResult) {
+    syncPreview();
+    const raw = expression.value.trim();
+    const xVar = document.getElementById('variable-select').value;
+    const order = parseInt(document.getElementById('order-select').value, 10);
+    const implicit = document.getElementById('implicit-checkbox').checked;
+    const errorBanner = document.getElementById('error-banner');
+    const errorDetail = document.getElementById('error-detail');
+
+    const t0 = performance.now();
+    try {
+      const rawTokens = tokenize(raw);
+      const parsed = parse(insertImplicitMultiplication(rawTokens));
+
+      let originalDisplay, derivativeNode, steps = [], domainSourceNode, astNode, isImplicit = implicit || parsed.isEquation;
+
+      if (isImplicit) {
+        const yVar = xVar === 'y' ? 'x' : 'y';
+        const lhs = parsed.isEquation ? parsed.left : parsed.node;
+        const rhs = parsed.isEquation ? parsed.right : { type: 'num', value: 0 };
+        if (!containsVar(lhs, yVar) && !containsVar(rhs, yVar)) {
+          throw new CalcError(`No se encontró la variable "${yVar}" para derivar de forma implícita.`);
+        }
+        const dl = diff(lhs, xVar, null, yVar);
+        const dr = diff(rhs, xVar, null, yVar);
+        const E = fullSimplify({ type: 'sub', a: dl, b: dr });
+        const { coeff, constPart } = extractYpCoefficient(E, '__yp__');
+        if (coeff.type === 'num' && coeff.value === 0) {
+          throw new CalcError(`No se pudo despejar ${yVar}' a partir de esta ecuación.`);
+        }
+        derivativeNode = fullSimplify({ type: 'div', a: { type: 'neg', a: constPart }, b: coeff });
+        originalDisplay = parsed.isEquation ? `${toLatex(lhs)} = ${toLatex(rhs)}` : toLatex(lhs);
+        steps = [
+          { title: 'Deriva ambos lados respecto a ' + xVar, note: `Se trata a ${mathInline(yVar)} como función de ${mathInline(xVar)}, así que cada término con ${mathInline(yVar)} lleva un factor ${mathInline(yVar + "'")} por la regla de la cadena.`, math: `${toLatex(E)} = 0` },
+          { title: `Despeja ${yVar}'`, note: `Se agrupan los términos con ${mathInline(yVar + "'")} y se despeja.`, math: `${yVar}' = ${toLatex(derivativeNode)}` },
+        ];
+        domainSourceNode = lhs;
+        astNode = lhs;
+      } else {
+        const node = parsed.node;
+        let current = node;
+        let allSteps = [];
+        for (let k = 0; k < order; k++) {
+          const orderNum = k + 1;
+          const before = current;
+          const orderSteps = [];
+          const raw = diff(before, xVar, orderSteps, null);
+          const after = fullSimplify(raw);
+
+          const introNote = orderNum === 1
+            ? `Vamos a calcular la primera derivada de ${mathInline(toLatex(before))} respecto a ${mathInline(xVar)}. Para lograrlo, recorremos la expresión de afuera hacia adentro, identificando en cada parte qué regla de derivación corresponde (suma, producto, cociente, potencia, cadena, funciones trigonométricas, exponenciales, logarítmicas, etc.) y combinando los resultados según cómo estén conectadas esas partes en la expresión original.`
+            : `Ya obtuvimos la ${ordinalFem(orderNum - 1)} derivada: ${mathInline(toLatex(before))}. Para hallar la ${ordinalFem(orderNum)} derivada simplemente repetimos el mismo proceso de derivación, pero ahora usando ese resultado como la nueva función de partida: derivamos la derivada anterior, aplicando de nuevo las reglas que correspondan a su estructura.`;
+
+          allSteps.push({
+            kind: 'header',
+            title: cap(ordinalFem(orderNum)) + ' derivada',
+            note: introNote,
+            math: `\\frac{d}{d${xVar}}\\left[${toLatex(before)}\\right]`,
+          });
+
+          if (!orderSteps.length) {
+            orderSteps.push({
+              title: 'Derivada directa',
+              current: `\\frac{d}{d${xVar}}\\left[${toLatex(before)}\\right]`,
+              math: toLatex(after),
+              note: `Esta expresión se deriva de forma directa aplicando una regla básica (derivada de una variable, una constante o una combinación muy simple de ambas), sin que se necesiten pasos intermedios.`,
+              limitProof: null,
+            });
+          }
+          orderSteps.forEach((s, i) => { s.localIndex = i + 1; });
+          allSteps = allSteps.concat(orderSteps);
+
+          allSteps.push({
+            kind: 'summary',
+            title: `Resultado: ${ordinalFem(orderNum)} derivada`,
+            note: order === 1
+              ? `Simplificando la expresión anterior, esta es la derivada final:`
+              : `Simplificando la expresión anterior, esta es la ${ordinalFem(orderNum)} derivada` + (orderNum < order ? `, que usaremos a continuación como punto de partida para la ${ordinalFem(orderNum + 1)}:` : ':'),
+            math: toLatex(after),
+          });
+
+          current = after;
+        }
+        derivativeNode = current;
+        originalDisplay = toLatex(node);
+        domainSourceNode = node;
+        astNode = node;
+        steps = allSteps;
+      }
+
+      const elapsed = (performance.now() - t0) / 1000;
+
+      errorBanner.classList.remove('show');
+      const resultPanel = document.getElementById('result-panel');
+      document.getElementById('res-original').innerHTML = `$${originalDisplay}$`;
+      document.getElementById('res-derivative').innerHTML = `$${toLatex(derivativeNode)}$`;
+      document.getElementById('res-domain').innerHTML = computeDomainNote(domainSourceNode, xVar);
+      document.getElementById('res-variable').textContent = isImplicit ? `${xVar} (implícita)` : xVar;
+      document.getElementById('stat-order').textContent = isImplicit ? 'Implícita' : (ORDINALS[order] || `${order}ª orden`);
+      document.getElementById('stat-time').textContent = `${elapsed.toFixed(3)} s`;
+      const nodeCount = countNodes(derivativeNode);
+      document.getElementById('stat-complexity').textContent = nodeCount <= 6 ? 'Baja' : nodeCount <= 16 ? 'Media' : 'Alta';
+      renderMath(resultPanel);
+
+      renderSteps(steps);
+      renderTokens(rawTokens);
+      renderASTSVG(astNode);
+
+      if (!isImplicit) {
+        try {
+          graphState.f = compileFn(parsed.node, xVar);
+          graphState.df = compileFn(derivativeNode, xVar);
+        } catch (_) { graphState.f = null; graphState.df = null; }
+      } else {
+        graphState.f = null; graphState.df = null;
+      }
+      graphState.xMin = -10; graphState.xMax = 10;
+      drawGraph();
+
+      if (scrollToResult) {
+        addHistoryEntry({
+          id: 'h_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
+          timestamp: Date.now(),
+          raw,
+          config: { xVar, order, implicit, oneStepMode },
+          originalLatex: originalDisplay,
+          derivativeLatex: toLatex(derivativeNode),
+          domainHTML: document.getElementById('res-domain').innerHTML,
+          variableText: document.getElementById('res-variable').textContent,
+          statOrder: document.getElementById('stat-order').textContent,
+          statTime: document.getElementById('stat-time').textContent,
+          statComplexity: document.getElementById('stat-complexity').textContent,
+          steps,
+          tokens: rawTokens,
+          astNode,
+          isImplicit,
+          fnNode: isImplicit ? null : parsed.node,
+          derivativeNode: isImplicit ? null : derivativeNode,
+        });
+        if (settings.autoScrollResult) resultPanel.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+        if (settings.autoShowSteps) setStepsSectionOpen(true);
+      }
+    } catch (err) {
+      errorDetail.textContent = err instanceof CalcError ? err.message : 'Revisa la expresión: falta cerrar un paréntesis, sobra un operador o hay un símbolo no reconocido.';
+      errorBanner.classList.add('show');
+    }
+  }
+  document.getElementById('calculate-btn').addEventListener('click', () => runCalculation(true));
+  expression.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); runCalculation(true); } });
+
+  document.getElementById('one-step-toggle').checked = settings.oneStepDefault;
+  oneStepMode = settings.oneStepDefault;
+  initSettings();
+  runCalculation(false);
+
+  // ---------- Step-by-step: collapsed by default ----------
+  const toggleStepsBtn = document.getElementById('toggle-steps-btn');
+  const stepsWrapper = document.getElementById('steps-wrapper');
+  const toggleStepsIcon = document.getElementById('toggle-steps-icon');
+  function setStepsSectionOpen(open) {
+    stepsWrapper.classList.toggle('hidden', !open);
+    toggleStepsBtn.setAttribute('aria-expanded', String(open));
+    toggleStepsBtn.querySelector('h2').textContent = open ? 'Ocultar desarrollo paso a paso' : 'Ver desarrollo paso a paso';
+    toggleStepsIcon.style.transform = open ? 'rotate(180deg)' : 'rotate(0deg)';
+  }
+  toggleStepsBtn.addEventListener('click', () => setStepsSectionOpen(stepsWrapper.classList.contains('hidden')));
+
+  // ---------- Spline header ----------
+  const splineViewer = document.getElementById('spline-viewer');
+  const splineFallback = document.getElementById('spline-fallback');
+  splineViewer.addEventListener('load', () => splineFallback.classList.add('is-loaded'));
+  setTimeout(() => splineFallback.classList.add('is-loaded'), 6000);
+
+  // ---------- Hero power-rule signature ----------
+  const powerDemo = document.getElementById('power-demo');
+  if (reduceMotion) {
+    powerDemo.classList.add('played');
+  } else {
+    const play = () => {
+      powerDemo.classList.remove('played');
+      void powerDemo.offsetWidth;
+      requestAnimationFrame(() => powerDemo.classList.add('played'));
+    };
+    setTimeout(play, 500);
+    setInterval(play, 6000);
+  }
+})();
+</script>
+</body>
+</html>
