@@ -370,6 +370,13 @@
               <p class="font-label-md text-on-surface-variant truncate">e, π y propias</p>
             </div>
           </button>
+          <button type="button" class="sidebar-modal-btn card reveal p-md group flex items-center gap-md w-full text-left" data-modal="indeterminaciones">
+            <span class="material-symbols-outlined text-on-surface group-hover:-translate-y-0.5 transition-transform">warning</span>
+            <div class="min-w-0">
+              <h3 class="font-sans text-body-lg font-semibold leading-tight">Indeterminaciones</h3>
+              <p class="font-label-md text-on-surface-variant truncate">Formas indefinidas</p>
+            </div>
+          </button>
 
           <div id="examples-section" class="card reveal overflow-hidden scroll-mt-24">
             <button type="button" id="examples-toggle" class="w-full p-md flex items-center gap-md text-left group" aria-expanded="false" aria-controls="examples-panel">
@@ -840,6 +847,9 @@
     });
   });
 
+  // Set right before openModal('resultadoIndefinido') so that modal's body()/title() closures can read it.
+  let pendingIndeterminateIssue = null;
+
   // ---------- Voice dictation ----------
   // The mic button only ever talks to createWebSpeechEngine()/interpretSpokenMath() (voice.js).
   // Swapping the recognition engine later (e.g. for Whisper) means changing that factory call only.
@@ -1227,6 +1237,47 @@
         ruleCard('Cómo afectan la derivación', 'Un factor constante que multiplica a toda la función se conserva; solo se deriva la parte que depende de la variable (regla del factor constante).', "\\frac{d}{dx}\\left[5x^3\\right] = 5 \\cdot \\frac{d}{dx}\\left[x^3\\right] = 15x^2"),
       ].join(''),
     },
+    indeterminaciones: {
+      title: 'Formas indeterminadas',
+      body: () => [
+        `<p class="font-body-md text-on-surface-variant">Una forma indeterminada aparece cuando, al evaluar una expresión, dos partes que "compiten" entre sí (por ejemplo algo que tiende a cero contra algo que tiende a infinito) hacen que el resultado no quede fijado por la sola estructura de la expresión: hace falta un análisis adicional (factorización, la regla de L'Hôpital, un límite) para saber su valor real. Son distintas de una expresión simplemente <strong class="text-on-surface">indefinida</strong> (como dividir entre cero un número distinto de cero), que no tiene ningún valor posible.</p>`,
+        ruleTable('Las siete formas indeterminadas clásicas', 'Si tu función se reduce a una de estas, la calculadora te avisa con un mensaje emergente en vez de mostrar un resultado incorrecto.', [
+          ['\\dfrac{0}{0}', '\\text{indeterminada}'],
+          ['\\dfrac{\\infty}{\\infty}', '\\text{indeterminada}'],
+          ['0 \\cdot \\infty', '\\text{indeterminada}'],
+          ['\\infty - \\infty', '\\text{indeterminada}'],
+          ['0^{0}', '\\text{indeterminada}'],
+          ['1^{\\infty}', '\\text{indeterminada}'],
+          ['\\infty^{0}', '\\text{indeterminada}'],
+        ]),
+        `<div class="rule-card space-y-2">
+          <h3 class="font-sans text-body-lg font-semibold text-on-surface">Detectadas automáticamente en esta calculadora</h3>
+          <p class="font-body-md text-on-surface-variant">Como esta calculadora no acepta escribir el símbolo de infinito directamente (<button type="button" class="underline hover:no-underline sidebar-modal-btn" data-modal="atajos">ver Atajos</button>), las dos formas que puedes provocar escribiendo tu función son $\\dfrac{0}{0}$ y $0^{0}$. Ambas detienen el cálculo y muestran una ventana emergente explicando el problema, en vez de simular un resultado.</p>
+        </div>`,
+        ruleTable('Casos que también se detectan por ser indefinidos (no indeterminados)', 'Estas expresiones no tienen ningún valor real posible, así que también muestran la ventana emergente.', [
+          ['\\dfrac{n}{0} \\ (n \\neq 0)', '\\text{división entre cero}'],
+          ['\\ln(x) \\text{ o } \\log(x) \\text{ con } x \\leq 0', '\\text{fuera del dominio}'],
+          ['\\sqrt{x} \\text{ con } x < 0', '\\text{fuera del dominio (reales)}'],
+          ['\\arcsin(x) \\text{ o } \\arccos(x) \\text{ con } |x| > 1', '\\text{fuera del dominio}'],
+        ]),
+      ].join(''),
+    },
+    resultadoIndefinido: {
+      title: () => pendingIndeterminateIssue?.kind === 'indeterminate' ? 'Forma indeterminada detectada' : 'Resultado indefinido',
+      body: () => {
+        const issue = pendingIndeterminateIssue;
+        if (!issue) return '';
+        return `
+          <div class="flex items-start gap-md">
+            <span class="material-symbols-outlined text-[28px] shrink-0 text-on-surface">${issue.kind === 'indeterminate' ? 'help' : 'block'}</span>
+            <p class="font-body-md text-on-surface-variant min-w-0">${issue.message}</p>
+          </div>
+          <div class="rule-card flex items-center justify-center py-lg">
+            <div class="text-headline-md">$${issue.formLatex}$</div>
+          </div>
+          <p class="font-label-md text-on-surface-variant">Ajusta la función para continuar con el cálculo. Consulta <button type="button" class="underline hover:no-underline sidebar-modal-btn" data-modal="indeterminaciones">Indeterminaciones</button> para ver la lista completa de estas formas.</p>`;
+      },
+    },
     atajos: {
       title: 'Atajos de escritura',
       body: () => `
@@ -1303,7 +1354,7 @@
     const data = MODAL_CONTENT[key];
     if (!data) return;
     lastFocusedBeforeModal = document.activeElement;
-    modalTitle.textContent = data.title;
+    modalTitle.textContent = typeof data.title === 'function' ? data.title() : data.title;
     modalBody.innerHTML = data.body();
     renderMath(modalBody);
     if (key === 'ajustes') wireSettingsControls();
@@ -1317,8 +1368,11 @@
     document.body.style.overflow = '';
     if (lastFocusedBeforeModal) lastFocusedBeforeModal.focus();
   }
-  document.querySelectorAll('.sidebar-modal-btn').forEach(btn => {
-    btn.addEventListener('click', () => openModal(btn.dataset.modal));
+  // Delegated (not a one-time querySelectorAll) so buttons injected later into
+  // modal-body content (e.g. the "Indeterminaciones" link inside the pop-up) work too.
+  document.addEventListener('click', e => {
+    const btn = e.target.closest('.sidebar-modal-btn');
+    if (btn) openModal(btn.dataset.modal);
   });
   document.getElementById('modal-close').addEventListener('click', closeModal);
   document.querySelector('[data-modal-backdrop]').addEventListener('click', closeModal);
@@ -1520,6 +1574,11 @@
       const rawTokens = tokenize(raw);
       const parsed = parse(insertImplicitMultiplication(rawTokens));
 
+      for (const n of (parsed.isEquation ? [parsed.left, parsed.right] : [parsed.node])) {
+        const issue = findIndeterminateIssue(n);
+        if (issue) throw new IndeterminateError(issue);
+      }
+
       let originalDisplay, derivativeNode, steps = [], domainSourceNode, astNode, isImplicit = implicit || parsed.isEquation;
 
       if (isImplicit) {
@@ -1596,6 +1655,9 @@
         steps = allSteps;
       }
 
+      const derivIssue = findIndeterminateIssue(derivativeNode);
+      if (derivIssue) throw new IndeterminateError(derivIssue);
+
       const elapsed = (performance.now() - t0) / 1000;
 
       errorBanner.classList.remove('show');
@@ -1649,6 +1711,11 @@
         if (settings.autoShowSteps) setStepsSectionOpen(true);
       }
     } catch (err) {
+      if (err instanceof IndeterminateError) {
+        pendingIndeterminateIssue = err.issue;
+        openModal('resultadoIndefinido');
+        return;
+      }
       errorDetail.textContent = err instanceof CalcError ? err.message : 'Revisa la expresión: falta cerrar un paréntesis, sobra un operador o hay un símbolo no reconocido.';
       errorBanner.classList.add('show');
     }

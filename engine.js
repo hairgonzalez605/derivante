@@ -224,6 +224,120 @@
     return risky ? 'Definida donde la expresión sea válida.' : `$${xVar} \\in \\mathbb{R}$`;
   }
 
+  // ---------- Indeterminate / undefined result detection ----------
+  // Thrown instead of CalcError when a sub-expression is a fixed numeric value
+  // (no variable involved) that is mathematically indeterminate (e.g. 0/0, 0^0)
+  // or simply undefined in the reals (e.g. division by zero, log of a
+  // non-positive number, sqrt of a negative number). Carries `issue` so the
+  // caller can show a dedicated pop-up instead of the generic error banner.
+  class IndeterminateError extends CalcError {
+    constructor(issue) { super(issue.message); this.issue = issue; }
+  }
+  function containsAnyVar(node) {
+    switch (node.type) {
+      case 'num': case 'const': return false;
+      case 'var': return true;
+      case 'neg': return containsAnyVar(node.a);
+      case 'func': return containsAnyVar(node.arg);
+      default: return containsAnyVar(node.a) || containsAnyVar(node.b);
+    }
+  }
+  // Plain numeric evaluator for sub-trees already known to be variable-free
+  // (checked via containsAnyVar by the caller). Never called on a 'var' node.
+  function evalConstNode(node) {
+    switch (node.type) {
+      case 'num': return node.value;
+      case 'const': return node.name === 'pi' ? Math.PI : Math.E;
+      case 'neg': return -evalConstNode(node.a);
+      case 'add': return evalConstNode(node.a) + evalConstNode(node.b);
+      case 'sub': return evalConstNode(node.a) - evalConstNode(node.b);
+      case 'mul': return evalConstNode(node.a) * evalConstNode(node.b);
+      case 'div': return evalConstNode(node.a) / evalConstNode(node.b);
+      case 'pow': return Math.pow(evalConstNode(node.a), evalConstNode(node.b));
+      case 'func': {
+        const v = evalConstNode(node.arg);
+        switch (node.name) {
+          case 'sin': return Math.sin(v);
+          case 'cos': return Math.cos(v);
+          case 'tan': return Math.tan(v);
+          case 'cot': return 1 / Math.tan(v);
+          case 'sec': return 1 / Math.cos(v);
+          case 'csc': return 1 / Math.sin(v);
+          case 'asin': return Math.asin(v);
+          case 'acos': return Math.acos(v);
+          case 'atan': return Math.atan(v);
+          case 'sinh': return Math.sinh(v);
+          case 'cosh': return Math.cosh(v);
+          case 'tanh': return Math.tanh(v);
+          case 'ln': return Math.log(v);
+          case 'log': return Math.log10(v);
+          case 'sqrt': return Math.sqrt(v);
+          case 'exp': return Math.exp(v);
+          case 'abs': return Math.abs(v);
+          default: return NaN;
+        }
+      }
+      default: return NaN;
+    }
+  }
+  // Walks the tree looking for a sub-expression that is a fixed numeric value
+  // (contains no variable) and is either one of the seven classic indeterminate
+  // forms (0/0, 0^0 — the only two reachable through literal input, since this
+  // calculator has no way to type infinity) or simply undefined in the reals
+  // (division by zero, log/sqrt/inverse-trig outside their domain). Post-order:
+  // children are checked before their parent, so the deepest, most specific
+  // offending sub-expression is reported first.
+  function findIndeterminateIssue(node) {
+    if (!node || typeof node !== 'object') return null;
+    if (node.a) { const r = findIndeterminateIssue(node.a); if (r) return r; }
+    if (node.b) { const r = findIndeterminateIssue(node.b); if (r) return r; }
+    if (node.arg) { const r = findIndeterminateIssue(node.arg); if (r) return r; }
+
+    if (node.type === 'div' && !containsAnyVar(node.b)) {
+      const bVal = evalConstNode(node.b);
+      if (bVal === 0) {
+        if (!containsAnyVar(node.a)) {
+          const aVal = evalConstNode(node.a);
+          if (aVal === 0) {
+            return { kind: 'indeterminate', formLatex: '\\dfrac{0}{0}',
+              message: `La expresión contiene una división de la forma $\\dfrac{0}{0}$ (numerador y denominador se reducen ambos a cero). Es una de las siete formas indeterminadas clásicas del cálculo: no tiene un valor único definido sin un análisis adicional, como factorización, la regla de L'Hôpital o un límite.` };
+          }
+          return { kind: 'undefined', formLatex: `\\dfrac{${fmtNum(aVal)}}{0}`,
+            message: `La expresión contiene una división entre cero (el denominador se reduce a $0$), lo cual no está definido en los números reales.` };
+        }
+        return { kind: 'undefined', formLatex: `\\dfrac{\\cdot}{0}`,
+          message: `El denominador de una de las divisiones en la expresión se reduce a $0$ para todo valor de la variable, así que esa división no está definida en ningún punto del dominio.` };
+      }
+    }
+    if (node.type === 'pow' && !containsAnyVar(node.a) && !containsAnyVar(node.b)) {
+      const aVal = evalConstNode(node.a), bVal = evalConstNode(node.b);
+      if (aVal === 0 && bVal === 0) {
+        return { kind: 'indeterminate', formLatex: '0^{0}',
+          message: `La expresión contiene la potencia $0^{0}$. Es una de las siete formas indeterminadas clásicas del cálculo: su valor no queda determinado únicamente por la estructura de la expresión.` };
+      }
+      if (aVal === 0 && bVal < 0) {
+        return { kind: 'undefined', formLatex: `0^{${fmtNum(bVal)}}`,
+          message: `La expresión eleva $0$ a un exponente negativo ($0^{${fmtNum(bVal)}}$), lo cual equivale a dividir entre cero y no está definido.` };
+      }
+    }
+    if (node.type === 'func' && !containsAnyVar(node.arg)) {
+      const v = evalConstNode(node.arg);
+      if ((node.name === 'ln' || node.name === 'log') && v <= 0) {
+        return { kind: 'undefined', formLatex: `\\${node.name}(${fmtNum(v)})`,
+          message: `El logaritmo no está definido para valores menores o iguales a cero, y el argumento de ${node.name === 'ln' ? '$\\ln$' : '$\\log$'} se reduce a $${fmtNum(v)}$.` };
+      }
+      if (node.name === 'sqrt' && v < 0) {
+        return { kind: 'undefined', formLatex: `\\sqrt{${fmtNum(v)}}`,
+          message: `La raíz cuadrada no está definida para números negativos dentro de los números reales, y el argumento se reduce a $${fmtNum(v)}$.` };
+      }
+      if ((node.name === 'asin' || node.name === 'acos') && (v < -1 || v > 1)) {
+        return { kind: 'undefined', formLatex: `\\${node.name === 'asin' ? 'arcsin' : 'arccos'}(${fmtNum(v)})`,
+          message: `${node.name === 'asin' ? 'El arcoseno' : 'El arcocoseno'} solo está definido para valores entre $-1$ y $1$, y el argumento se reduce a $${fmtNum(v)}$.` };
+      }
+    }
+    return null;
+  }
+
   // ---------- Differentiation ----------
   function diff(node, xVar, steps, yVar) {
     const log = (title, before, after, detail) => {
